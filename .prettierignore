@@ -5,3 +5,8 @@ pnpm-lock.yaml
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+dist/
+playwright-report/
+test-results/
+public/mockServiceWorker.js
+.claude/
