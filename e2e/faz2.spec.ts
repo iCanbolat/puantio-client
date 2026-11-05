@@ -122,15 +122,25 @@ test.describe("Faz 2: vardiya, yoklama ve puantaj", () => {
     await expect(grid).toBeVisible()
     const sundayCell = grid.locator('button[data-cell$="|2026-09-20"]').first()
     const source = page.getByTestId("palette-S")
+    // Satır verisi ve palet yüklenmeden ölçülen kutular düzen kaymasıyla
+    // boşa düşebiliyor; önce ikisinin de yerleşmesini bekle.
+    await expect(sundayCell).toBeVisible()
+    await expect(sundayCell).toHaveAttribute("aria-label", /vardiya yok/)
+    await expect(source).toBeVisible()
+    await expect(page.getByText("Taslak yok")).toBeVisible()
     const from = await source.boundingBox()
-    const to = await sundayCell.boundingBox()
-    if (!from || !to) throw new Error("Sürükleme kutuları bulunamadı")
+    if (!from) throw new Error("Sürükleme kaynağı bulunamadı")
     await page.mouse.move(from.x + 10, from.y + from.height / 2)
     await page.mouse.down()
     await page.mouse.move(from.x + 30, from.y + from.height / 2, { steps: 5 })
-    await page.mouse.move(to.x + to.width / 2, to.y + to.height / 2, {
-      steps: 15,
-    })
+    // Hedefi sürükleme başladıktan sonra ölç (DragOverlay düzeni etkileyebilir)
+    const to = await sundayCell.boundingBox()
+    if (!to) throw new Error("Sürükleme hedefi bulunamadı")
+    const tx = to.x + to.width / 2
+    const ty = to.y + to.height / 2
+    await page.mouse.move(tx, ty, { steps: 15 })
+    // dnd-kit çarpışma tespiti son pointermove'da güncellenir
+    await page.mouse.move(tx + 1, ty + 1)
     await page.mouse.up()
     await expect(sundayCell).toHaveText(/S/)
     await expect(page.getByText("1 kaydedilmemiş değişiklik")).toBeVisible()

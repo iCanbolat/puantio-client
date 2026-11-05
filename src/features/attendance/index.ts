@@ -1,7 +1,15 @@
 import type { QueryClient } from "@tanstack/react-query"
+import { lazy } from "react"
 import type { RouteObject } from "react-router"
 
-export { AttendanceDashboard } from "./components/attendance-dashboard"
+/**
+ * Modül 1 dashboard'u ana sayfada görünür; grafik kütüphanesi (recharts + d3)
+ * giriş paketine girmesin diye tembel yüklenir. `<Suspense>` ile kullanın.
+ */
+export const AttendanceDashboard = lazy(async () => ({
+  default: (await import("./components/attendance-dashboard"))
+    .AttendanceDashboard,
+}))
 export { AttendanceRealtimeBridge } from "./components/attendance-realtime-bridge"
 export { attendanceKeys } from "./api/attendance-api"
 

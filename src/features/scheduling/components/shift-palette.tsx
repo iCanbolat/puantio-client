@@ -1,5 +1,4 @@
 import { useDraggable } from "@dnd-kit/core"
-import { CSS } from "@dnd-kit/utilities"
 import { GripVerticalIcon } from "lucide-react"
 
 import {
@@ -13,6 +12,32 @@ import { SHIFT_COLOR_CLASSES } from "./shift-colors"
 
 export const TEMPLATE_DRAG_PREFIX = "tpl:"
 
+function PaletteCard({
+  template,
+  className,
+}: {
+  template: ShiftTemplate
+  className?: string
+}) {
+  const hours = templateNetMinutes(template) / 60
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs ring-1 select-none",
+        SHIFT_COLOR_CLASSES[template.color],
+        className
+      )}
+    >
+      <GripVerticalIcon className="size-3.5 shrink-0" aria-hidden />
+      <span className="font-mono font-semibold">{template.code}</span>
+      <span className="truncate">{template.name}</span>
+      <span className="ml-auto tabular-nums opacity-80">
+        {templateTimeLabel(template)} · {hours.toLocaleString("tr-TR")} sa
+      </span>
+    </div>
+  )
+}
+
 function PaletteItem({
   template,
   disabled,
@@ -20,37 +45,47 @@ function PaletteItem({
   template: ShiftTemplate
   disabled: boolean
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: `${TEMPLATE_DRAG_PREFIX}${template.id}`,
-      disabled,
-    })
-  const hours = templateNetMinutes(template) / 60
+  // Kaynak kart yerinde kalır; sürüklenen kopya DragOverlay'de (portal) çizilir.
+  // Kartın kendisini transform ile taşımak sayfada yatay taşma yaratıp otomatik
+  // kaydırmayı tetikliyor ve bırakma hedefini kaydırıyordu.
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `${TEMPLATE_DRAG_PREFIX}${template.id}`,
+    disabled,
+  })
   return (
     <li>
       <div
         ref={setNodeRef}
-        style={{ transform: CSS.Translate.toString(transform) }}
         {...listeners}
         {...attributes}
         aria-roledescription="sürüklenebilir vardiya şablonu"
         aria-label={`${template.name} (${template.code}) şablonunu sürükle`}
         data-testid={`palette-${template.code}`}
         className={cn(
-          "flex cursor-grab touch-none items-center gap-2 rounded-lg px-2 py-1.5 text-xs ring-1 select-none",
-          SHIFT_COLOR_CLASSES[template.color],
-          isDragging && "z-50 opacity-80 shadow-lg",
+          "cursor-grab touch-none rounded-lg",
           disabled && "cursor-not-allowed opacity-50"
         )}
       >
-        <GripVerticalIcon className="size-3.5 shrink-0" aria-hidden />
-        <span className="font-mono font-semibold">{template.code}</span>
-        <span className="truncate">{template.name}</span>
-        <span className="ml-auto tabular-nums opacity-80">
-          {templateTimeLabel(template)} · {hours.toLocaleString("tr-TR")} sa
-        </span>
+        <PaletteCard
+          template={template}
+          className={cn(isDragging && "opacity-40")}
+        />
       </div>
     </li>
+  )
+}
+
+/** Sürükleme sırasında işaretçiyi izleyen kart (DragOverlay içinde) */
+export function ShiftPaletteDragPreview({
+  template,
+}: {
+  template: ShiftTemplate
+}) {
+  return (
+    <PaletteCard
+      template={template}
+      className="w-64 cursor-grabbing opacity-90 shadow-lg"
+    />
   )
 }
 

@@ -6,6 +6,7 @@ import {
   ClockIcon,
   RadioIcon,
 } from "lucide-react"
+import { Suspense } from "react"
 import { z } from "zod"
 
 import { AttendanceDashboard } from "@/features/attendance"
@@ -24,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card"
+import { Skeleton } from "@/shared/ui/skeleton"
 
 const healthSchema = z.object({
   status: z.literal("ok"),
@@ -134,9 +136,17 @@ export function HomePage() {
       </section>
 
       {showAttendance ? (
-        <AttendanceDashboard
-          orgUnitLabel={terms.orgLevels.at(-1)?.singular ?? "Bölge"}
-        />
+        <Suspense
+          fallback={
+            <div role="status" aria-label="Yoklama özeti yükleniyor">
+              <Skeleton className="h-96 w-full" />
+            </div>
+          }
+        >
+          <AttendanceDashboard
+            orgUnitLabel={terms.orgLevels.at(-1)?.singular ?? "Bölge"}
+          />
+        </Suspense>
       ) : null}
 
       <Card>

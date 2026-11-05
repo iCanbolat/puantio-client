@@ -1,10 +1,15 @@
 import {
+  closestCenter,
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
@@ -55,7 +60,11 @@ import { BulkAssignDialog } from "../components/bulk-assign-dialog"
 import { CellEditorDialog } from "../components/cell-editor-dialog"
 import { ConflictDialog } from "../components/conflict-dialog"
 import { ScheduleGrid } from "../components/schedule-grid"
-import { ShiftPalette, TEMPLATE_DRAG_PREFIX } from "../components/shift-palette"
+import {
+  ShiftPalette,
+  ShiftPaletteDragPreview,
+  TEMPLATE_DRAG_PREFIX,
+} from "../components/shift-palette"
 import { buildBoard, cellShiftId, type BoardCell } from "../domain/board"
 import {
   evaluateSchedule,
@@ -81,6 +90,14 @@ function useRange(view: "hafta" | "ay", anchor: string | undefined) {
   const monday = startOfIsoWeek(anchor && anchor.length === 10 ? anchor : today)
   return { from: monday, to: addDaysIso(monday, 6), key: monday }
 }
+
+/**
+ * Hücre, sürüklenen şablon kartının kutusuna göre değil işaretçinin altındaki
+ * konuma göre seçilir; geniş palet kartı komşu hücrelere taşsa da bırakma
+ * hedefi kararlıdır. Klavye sürüklemesinde işaretçi yoktur → en yakın merkez.
+ */
+const collisionDetection: CollisionDetection = (args) =>
+  args.pointerCoordinates ? pointerWithin(args) : closestCenter(args)
 
 export function PlanningPage() {
   const terms = useTerms()
@@ -179,6 +196,14 @@ export function PlanningPage() {
     },
   })
 
+  const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(
+    null
+  )
+  const draggingTemplate = draggingTemplateId
+    ? [...templates.values()].find(
+        (template) => template.id === draggingTemplateId
+      )
+    : undefined
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor)
@@ -189,7 +214,16 @@ export function PlanningPage() {
   ) => {
     setCells(cells, version)
   }
+  const onDragStart = (event: DragStartEvent) => {
+    const activeId = String(event.active.id)
+    setDraggingTemplateId(
+      activeId.startsWith(TEMPLATE_DRAG_PREFIX)
+        ? activeId.slice(TEMPLATE_DRAG_PREFIX.length)
+        : null
+    )
+  }
   const onDragEnd = (event: DragEndEvent) => {
+    setDraggingTemplateId(null)
     const activeId = String(event.active.id)
     if (!event.over || !activeId.startsWith(TEMPLATE_DRAG_PREFIX)) return
     const [personnelId = "", date = ""] = String(event.over.id).split("|")
@@ -326,7 +360,13 @@ export function PlanningPage() {
       ) : !schedule || !board || templatesQuery.isPending ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <DndContext sensors={sensors} onDragEnd={onDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={collisionDetection}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setDraggingTemplateId(null)}
+        >
           <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
             <aside className="flex flex-col gap-4">
               {readOnly ? (
@@ -457,6 +497,11 @@ export function PlanningPage() {
               </Button>
             </div>
           )}
+          <DragOverlay dropAnimation={null}>
+            {draggingTemplate ? (
+              <ShiftPaletteDragPreview template={draggingTemplate} />
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 

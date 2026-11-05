@@ -73,6 +73,23 @@ export const test = base.extend<Fixtures>({
         "wcag21aa",
       ])
       if (options.include) builder = builder.include(options.include)
+      // Varyant değişen buton/bağlantılar (ör. outline → default) `transition-all`
+      // ile renk geçişi yapar; axe ara karede ölçerse sahte kontrast ihlali verir.
+      // Sonlu animasyon/geçişlerin bitmesini bekle (sonsuz pulse/spin hariç).
+      await page.evaluate(async () => {
+        for (let round = 0; round < 2; round++) {
+          await new Promise(requestAnimationFrame)
+          await Promise.all(
+            document
+              .getAnimations()
+              .filter(
+                (animation) =>
+                  animation.effect?.getTiming().iterations !== Infinity
+              )
+              .map((animation) => animation.finished.catch(() => undefined))
+          )
+        }
+      })
       const results = await builder.analyze()
       const summary = results.violations.map(
         (violation) =>
