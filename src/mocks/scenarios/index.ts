@@ -2,12 +2,17 @@ import type { RequestHandler, WebSocketHandler } from "msw"
 
 import { resetDatabase, type SeedProfile } from "../db"
 import { phase0Scenarios } from "./phase0"
+import { phase2Scenarios } from "./phase2"
+import { setRealtimeBlocked } from "../realtime"
 import type { ScenarioDefinition } from "./types"
 
 export { defineScenario, type ScenarioDefinition } from "./types"
 
 /** Tüm senaryolar. Her faz kendi dosyasını ekler (phase1.ts, phase2.ts ...). */
-export const scenarios: readonly ScenarioDefinition[] = [...phase0Scenarios]
+export const scenarios: readonly ScenarioDefinition[] = [
+  ...phase0Scenarios,
+  ...phase2Scenarios,
+]
 
 export type ScenarioId = string
 
@@ -35,6 +40,7 @@ export function applyScenario(
   const scenario = findScenario(id)
   if (!scenario) throw new Error(`Bilinmeyen senaryo: ${id}`)
   target.resetHandlers()
+  setRealtimeBlocked(false)
   resetDatabase(profile)
   scenario.setup?.()
   const handlers = scenario.handlers?.() ?? []

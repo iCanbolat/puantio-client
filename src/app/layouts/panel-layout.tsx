@@ -1,9 +1,10 @@
 import { Suspense, useMemo } from "react"
 import { Outlet } from "react-router"
 
+import { AttendanceRealtimeBridge } from "@/features/attendance"
 import { SessionEffects, SupportBanner } from "@/features/auth"
-import { useSession } from "@/entities/session"
-import { useTenant, useTerms } from "@/entities/tenant"
+import { can, useSession } from "@/entities/session"
+import { hasModule, useTenant, useTerms } from "@/entities/tenant"
 import { PageSkeleton } from "@/shared/components/page-skeleton"
 import { useUiStore } from "@/shared/stores/ui-store"
 import { SidebarInset, SidebarProvider } from "@/shared/ui/sidebar"
@@ -85,5 +86,12 @@ export function PanelLayout({ showDevTools }: { showDevTools: boolean }) {
       }),
     [showDevTools, terms, me, tenant]
   )
-  return <ShellFrame sections={sections} header={<TenantHeader />} />
+  const listensAttendance =
+    hasModule(tenant, "attendance") && can(me, "attendance:read")
+  return (
+    <>
+      <ShellFrame sections={sections} header={<TenantHeader />} />
+      {listensAttendance ? <AttendanceRealtimeBridge /> : null}
+    </>
+  )
 }

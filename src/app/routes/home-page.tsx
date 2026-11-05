@@ -8,6 +8,9 @@ import {
 } from "lucide-react"
 import { z } from "zod"
 
+import { AttendanceDashboard } from "@/features/attendance"
+import { useCan } from "@/entities/session"
+import { useHasModule, useTerms } from "@/entities/tenant"
 import { http } from "@/shared/api/http"
 import { useRealtimeStatus } from "@/shared/api/realtime-hooks"
 import { PageHeader } from "@/shared/components/page-header"
@@ -46,7 +49,7 @@ const ROADMAP = [
     phase: 2,
     title: "Vardiya ve puantaj",
     detail: "Canlı yoklama, gelmeyen personel alarmı, puantaj, bordro aktarımı",
-    done: false,
+    done: true,
   },
   {
     phase: 3,
@@ -77,6 +80,10 @@ const ROADMAP = [
 export function HomePage() {
   const now = useNow(15_000)
   const realtime = useRealtimeStatus()
+  const terms = useTerms()
+  const hasAttendance = useHasModule("attendance")
+  const canReadAttendance = useCan("attendance:read")
+  const showAttendance = hasAttendance && canReadAttendance
   const health = useQuery({
     queryKey: ["system", "health"],
     queryFn: ({ signal }) =>
@@ -125,6 +132,12 @@ export function HomePage() {
           tone={realtime === "open" ? "success" : "warning"}
         />
       </section>
+
+      {showAttendance ? (
+        <AttendanceDashboard
+          orgUnitLabel={terms.orgLevels.at(-1)?.singular ?? "Bölge"}
+        />
+      ) : null}
 
       <Card>
         <CardHeader>

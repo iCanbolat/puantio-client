@@ -35,10 +35,18 @@ export const routePatterns = {
   platformTenantNew: "/platform/kiracilar/yeni",
   platformTenantDetail: "/platform/kiracilar/:tenantSlug",
   platformSupport: "/platform/destek-oturumlari",
+  schedule: "/vardiya",
+  scheduleTemplates: "/vardiya/sablonlar",
+  leave: "/izinler",
+  attendanceLive: "/yoklama",
+  attendanceAlarms: "/yoklama/alarmlar",
+  attendanceRecords: "/yoklama/kayitlar",
+  timesheet: "/puantaj",
+  timesheetPeriod: "/puantaj/:periodId",
+  payroll: "/bordro",
+  payrollProfiles: "/bordro/profiller",
+  portalTimesheet: "/portal/puantaj-onaylari",
   upcoming: {
-    schedule: "/vardiya",
-    attendance: "/yoklama",
-    timesheet: "/puantaj",
     contracts: "/sozlesmeler",
     progressPayment: "/hakedis",
     quality: "/kalite",
@@ -100,6 +108,32 @@ export const paths = {
     const params = new URLSearchParams()
     for (const id of locationIds) params.append("lokasyon", id)
     return `${routePatterns.tagPrint}?${params.toString()}`
+  },
+  schedule: {
+    board: (query: { locationId?: string; date?: string } = {}) =>
+      withQuery(routePatterns.schedule, {
+        lokasyon: query.locationId,
+        tarih: query.date,
+      }),
+    templates: () => routePatterns.scheduleTemplates,
+  },
+  leave: () => routePatterns.leave,
+  attendance: {
+    live: () => routePatterns.attendanceLive,
+    alarms: (status?: "aktif" | "eskale" | "cozulen") =>
+      withQuery(routePatterns.attendanceAlarms, { durum: status }),
+    records: (query: { anomaly?: string } = {}) =>
+      withQuery(routePatterns.attendanceRecords, { anomaly: query.anomaly }),
+  },
+  timesheet: {
+    periods: () => routePatterns.timesheet,
+    period: (id: string, query: { orgUnitId?: string } = {}) =>
+      withQuery(`/puantaj/${enc(id)}`, { orgUnitId: query.orgUnitId }),
+  },
+  payroll: {
+    exports: (periodId?: string) =>
+      withQuery(routePatterns.payroll, { donem: periodId }),
+    profiles: () => routePatterns.payrollProfiles,
   },
   customers: {
     list: () => routePatterns.customerList,

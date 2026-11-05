@@ -1,4 +1,4 @@
-import type { TenantConfig } from "@/entities/tenant"
+import { DEFAULT_LABOR_RULES, type TenantConfig } from "@/entities/tenant"
 
 /**
  * Mock kiracılar. Sektör profillerine göre kurgulanmıştır; gerçek firma adı kullanılmaz.
@@ -20,6 +20,8 @@ const baseRules = {
   idleTimeoutMinutes: 30,
   lateToleranceMinutes: 10,
   alarmSlaMinutes: 15,
+  escalationMinutes: 15,
+  labor: DEFAULT_LABOR_RULES,
   geofence: { min: 25, max: 1000, default: 100 },
 }
 
@@ -161,6 +163,7 @@ export function buildMockTenants(): MockTenant[] {
         ...baseRules,
         lateToleranceMinutes: 0,
         alarmSlaMinutes: 5,
+        escalationMinutes: 10,
         geofence: { min: 15, max: 500, default: 50 },
       },
       createdAt,

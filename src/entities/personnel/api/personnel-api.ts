@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions } from "@tanstack/react-query"
 
 import { http } from "@/shared/api/http"
+import { optionListSchema } from "@/shared/types"
 
 import {
   personnelDetailSchema,
@@ -15,6 +16,8 @@ export const personnelKeys = {
   list: (params: PersonnelListParams) =>
     [...personnelKeys.lists(), params] as const,
   detail: (id: string) => [...personnelKeys.all, "detail", id] as const,
+  options: (filter?: string) =>
+    [...personnelKeys.all, "options", filter ?? "all"] as const,
 }
 
 const enc = encodeURIComponent
@@ -43,4 +46,18 @@ export function createPersonnel(body: PersonnelPayload) {
 
 export function updatePersonnel(id: string, body: PersonnelPayload) {
   return http.patch(`/personnel/${enc(id)}`, personnelDetailSchema, { body })
+}
+
+/** Aktif personel araması (seçim kutuları). `floater: true` yalnızca yedek havuzunu döndürür. */
+export function fetchPersonnelOptions(
+  query: string,
+  signal?: AbortSignal,
+  filter: { floater?: boolean } = {}
+) {
+  return http
+    .get("/personnel/options", optionListSchema, {
+      params: { q: query, floater: filter.floater ? "true" : undefined },
+      signal,
+    })
+    .then((data) => data.items)
 }

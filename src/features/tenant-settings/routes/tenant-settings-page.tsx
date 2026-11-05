@@ -50,6 +50,7 @@ const FIELDS = [
   "rules.idleTimeoutMinutes",
   "rules.lateToleranceMinutes",
   "rules.alarmSlaMinutes",
+  "rules.escalationMinutes",
   "rules.geofence",
 ] as const
 
@@ -325,13 +326,13 @@ export function TenantSettingsPage() {
         <CardHeader>
           <CardTitle>Kurallar</CardTitle>
           <CardDescription>
-            Firma varsayılanları. Sözleşme ve lokasyon bazında daraltılabilir
-            (Faz 2).
+            Firma varsayılanları. Geç kalma toleransı ve alarm SLA'sı lokasyon
+            bazında daraltılabilir.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <FieldGroup>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <NumberField
                 id="rule-idle"
                 label="Oturum zaman aşımı (dk)"
@@ -355,6 +356,15 @@ export function TenantSettingsPage() {
                 description="Gelmeyen personel alarmı çözüm süresi"
                 error={errors.rules?.alarmSlaMinutes}
                 registration={form.register("rules.alarmSlaMinutes", {
+                  valueAsNumber: true,
+                })}
+              />
+              <NumberField
+                id="rule-escalation"
+                label="Eskalasyon süresi (dk)"
+                description="Çözülmeyen alarm operasyon müdürüne düşer"
+                error={errors.rules?.escalationMinutes}
+                registration={form.register("rules.escalationMinutes", {
                   valueAsNumber: true,
                 })}
               />

@@ -24,7 +24,9 @@ export {
 } from "./model/personnel"
 export {
   createPersonnel,
+  fetchPersonnelOptions,
   personnelKeys,
   personnelQueries,
   updatePersonnel,
 } from "./api/personnel-api"
+export { PersonnelCombobox } from "./ui/personnel-combobox"

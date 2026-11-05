@@ -25,8 +25,29 @@ export function broadcastServerTime(): void {
   broadcastEvent("system.hello", { serverTime: mockClock.now().toISOString() })
 }
 
+let blocked = false
+
+/**
+ * Canlı bağlantı kesintisi simülasyonu (dev paneli, TC-2.3-06): açık bağlantılar kapanır ve
+ * engel kaldırılana kadar yeni bağlantılar hemen reddedilir. İstemci polling'e düşer.
+ */
+export function setRealtimeBlocked(value: boolean): void {
+  blocked = value
+  if (value) {
+    for (const client of realtimeLink.clients) client.close()
+  }
+}
+
+export function isRealtimeBlocked(): boolean {
+  return blocked
+}
+
 export const realtimeHandlers = [
   realtimeLink.addEventListener("connection", ({ client }) => {
+    if (blocked) {
+      client.close()
+      return
+    }
     client.send(
       envelope("system.hello", { serverTime: mockClock.now().toISOString() })
     )

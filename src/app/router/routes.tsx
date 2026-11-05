@@ -7,14 +7,22 @@ import {
   createSessionGuard,
   type AuthController,
 } from "@/features/auth"
+import { attendanceRoutes } from "@/features/attendance"
 import { customerRoutes } from "@/features/customer-management"
 import { devShowcaseRoute } from "@/features/dev-showcase"
 import { locationRoutes } from "@/features/location-management"
+import { leaveRoutes } from "@/features/leave"
 import { importRoute } from "@/features/master-data-import"
 import { organizationRoutes } from "@/features/organization"
+import { payrollRoutes } from "@/features/payroll-export"
 import { personnelRoutes } from "@/features/personnel-management"
 import { platformRoutes } from "@/features/platform-admin"
+import { schedulingRoutes } from "@/features/scheduling"
 import { tenantSettingsRoutes } from "@/features/tenant-settings"
+import {
+  CustomerTimesheetApprovals,
+  timesheetRoutes,
+} from "@/features/timesheet"
 import { usersRolesRoutes } from "@/features/users-roles"
 import { PageSkeleton } from "@/shared/components/page-skeleton"
 import { scopeUiStoreToTenant } from "@/shared/stores/ui-store"
@@ -58,24 +66,6 @@ const UPCOMING: {
   phase: string
   handle: RouteHandle
 }[] = [
-  {
-    path: routePatterns.upcoming.schedule,
-    title: "Vardiya planlama",
-    phase: "2",
-    handle: { permission: "schedule:read", module: "attendance" },
-  },
-  {
-    path: routePatterns.upcoming.attendance,
-    title: "Canlı yoklama ve alarmlar",
-    phase: "2",
-    handle: { permission: "attendance:read", module: "attendance" },
-  },
-  {
-    path: routePatterns.upcoming.timesheet,
-    title: "Puantaj",
-    phase: "2",
-    handle: { permission: "timesheet:read", module: "timesheet" },
-  },
   {
     path: routePatterns.upcoming.contracts,
     title: "Sözleşmeler",
@@ -143,6 +133,11 @@ export function createRoutes(context: RouteContext): RouteObject[] {
   const usersRoles = usersRolesRoutes()
   const settings = tenantSettingsRoutes()
   const platform = platformRoutes()
+  const scheduling = schedulingRoutes(queryClient)
+  const leave = leaveRoutes()
+  const attendance = attendanceRoutes(queryClient)
+  const timesheet = timesheetRoutes(queryClient)
+  const payroll = payrollRoutes()
 
   const panelChildren: RouteObject[] = [
     {
@@ -214,6 +209,84 @@ export function createRoutes(context: RouteContext): RouteObject[] {
           path: routePatterns.customerDetail,
           handle: handle({ crumb: "Müşteri kartı" }),
           ...customers.detail,
+        },
+      ],
+    },
+    {
+      path: routePatterns.schedule,
+      handle: handle({
+        crumb: "Vardiya planlama",
+        permission: "schedule:read",
+        module: "attendance",
+      }),
+      children: [
+        { index: true, ...scheduling.board },
+        {
+          path: routePatterns.scheduleTemplates,
+          handle: handle({ crumb: "Şablonlar ve kurallar" }),
+          ...scheduling.templates,
+        },
+      ],
+    },
+    {
+      path: routePatterns.leave,
+      handle: handle({
+        crumb: "İzin ve raporlar",
+        permission: "leave:read",
+        module: "attendance",
+      }),
+      ...leave.list,
+    },
+    {
+      path: routePatterns.attendanceLive,
+      handle: handle({
+        crumb: "Canlı yoklama",
+        permission: "attendance:read",
+        module: "attendance",
+      }),
+      children: [
+        { index: true, ...attendance.live },
+        {
+          path: routePatterns.attendanceAlarms,
+          handle: handle({ crumb: "Alarm merkezi" }),
+          ...attendance.alarms,
+        },
+        {
+          path: routePatterns.attendanceRecords,
+          handle: handle({ crumb: "Yoklama kayıtları" }),
+          ...attendance.records,
+        },
+      ],
+    },
+    {
+      path: routePatterns.timesheet,
+      handle: handle({
+        crumb: "Puantaj",
+        permission: "timesheet:read",
+        module: "timesheet",
+      }),
+      children: [
+        { index: true, ...timesheet.periods },
+        {
+          path: routePatterns.timesheetPeriod,
+          handle: handle({ crumb: "Dönem" }),
+          ...timesheet.period,
+        },
+      ],
+    },
+    {
+      path: routePatterns.payroll,
+      handle: handle({
+        crumb: "Bordro aktarımı",
+        permission: "payroll:export",
+        module: "timesheet",
+      }),
+      children: [
+        { index: true, ...payroll.exports },
+        {
+          path: routePatterns.payrollProfiles,
+          handle: handle({ crumb: "Aktarım profilleri" }),
+          ...payroll.profiles,
         },
       ],
     },
@@ -382,7 +455,22 @@ export function createRoutes(context: RouteContext): RouteObject[] {
           path: routePatterns.portalHome,
           element: <PortalLayout />,
           errorElement: <RouteError />,
-          children: [{ index: true, Component: PortalHomePlaceholder }],
+          children: [
+            { index: true, Component: PortalHomePlaceholder },
+            {
+              id: "portal-session",
+              middleware: [createSessionGuard(guardContext, "tenant")],
+              loader: () => null,
+              errorElement: <RouteError />,
+              children: [
+                {
+                  path: routePatterns.portalTimesheet,
+                  handle: handle({ permission: "timesheet:approve_customer" }),
+                  Component: CustomerTimesheetApprovals,
+                },
+              ],
+            },
+          ],
         },
         {
           path: routePatterns.publicFeedback,

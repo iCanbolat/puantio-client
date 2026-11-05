@@ -138,6 +138,7 @@ const organizationHandlers = [
         tenantId: auth.tenant.slug,
         ...body.data,
         createdAt: now(),
+        payrollProfileId: null,
       })
       audit(auth, {
         action: "Tüzel kişilik eklendi",
@@ -803,6 +804,35 @@ const personnelHandlers = [
         }
       )
       return ok({ items: page.items.map(serializePersonnel), meta: page.meta })
+    })
+  ),
+  http.get(
+    apiPath("/personnel/options"),
+    withAuth(null, ({ request, auth }) => {
+      const { q, floater } = parseQuery(
+        request,
+        z.object({ q: z.string().optional(), floater: z.string().optional() })
+      )
+      const scope = createScope(auth)
+      const items = db.personnel
+        .findMany(
+          (person) =>
+            scope.personnel(person) &&
+            person.status === "active" &&
+            (floater !== "true" || person.isFloater) &&
+            (!q ||
+              includesTr(
+                `${person.employeeNumber} ${person.firstName} ${person.lastName}`,
+                q
+              ))
+        )
+        .slice(0, 20)
+        .map((person) => ({
+          value: person.id,
+          label: `${person.firstName} ${person.lastName}`,
+          description: `${person.employeeNumber}${person.isFloater ? " · Yedek havuzu" : ""}`,
+        }))
+      return ok({ items })
     })
   ),
   http.get(

@@ -164,11 +164,32 @@ export const tenantAuthSchema = z.object({
 })
 export type TenantAuth = z.infer<typeof tenantAuthSchema>
 
+export const DEFAULT_LABOR_RULES = {
+  weeklyHours: 45,
+  dailyHours: 11,
+  minRestHours: 11,
+  weeklyRestHours: 24,
+  annualOvertimeHours: 270,
+}
+
+export const laborRulesSchema = z.object({
+  weeklyHours: z.number().int().min(1).max(84),
+  dailyHours: z.number().int().min(1).max(24),
+  minRestHours: z.number().int().min(0).max(24),
+  weeklyRestHours: z.number().int().min(0).max(72),
+  annualOvertimeHours: z.number().int().min(0).max(1000),
+})
+export type LaborRules = z.infer<typeof laborRulesSchema>
+
 export const tenantRulesSchema = z
   .object({
     idleTimeoutMinutes: z.number().int().min(5).max(240),
     lateToleranceMinutes: z.number().int().min(0).max(60),
     alarmSlaMinutes: z.number().int().min(5).max(120),
+    /** Çözülmeyen alarm bu süre sonunda operasyon müdürüne eskale edilir (alarm oluşumundan itibaren) */
+    escalationMinutes: z.number().int().min(5).max(240).default(15),
+    /** 4857 sayılı İş Kanunu varsayılanları; kural motoru uyarı üretir, kesin karar backend'de */
+    labor: laborRulesSchema.default(DEFAULT_LABOR_RULES),
     geofence: z.object({
       min: z.number().int().min(10),
       max: z.number().int().max(5000),

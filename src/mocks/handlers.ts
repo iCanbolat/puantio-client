@@ -3,6 +3,10 @@ import { showcaseHandlers } from "@/features/dev-showcase/mocks/handlers"
 import { chaosHandler } from "./chaos"
 import { importHandlers } from "./import/handlers"
 import { masterDataHandlers } from "./master-data/handlers"
+import { attendanceHandlers } from "./operations/attendance-handlers"
+import { leaveHandlers } from "./operations/leave-handlers"
+import { scheduleHandlers } from "./operations/schedule-handlers"
+import { timesheetHandlers } from "./operations/timesheet-handlers"
 import { platformHandlers } from "./platform/handlers"
 import { realtimeHandlers } from "./realtime"
 import { systemHandlers } from "./system-handlers"
@@ -19,6 +23,10 @@ export const handlers = [
   ...masterDataHandlers,
   ...importHandlers,
   ...platformHandlers,
+  ...scheduleHandlers,
+  ...leaveHandlers,
+  ...attendanceHandlers,
+  ...timesheetHandlers,
   ...showcaseHandlers,
   ...realtimeHandlers,
 ]

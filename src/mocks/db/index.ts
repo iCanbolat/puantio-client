@@ -13,17 +13,28 @@ import {
 import { buildSystemRoles, type MockRole } from "../tenancy/roles"
 import { buildMockTenants, type MockTenant } from "../tenancy/tenants"
 import { buildTenantUsers } from "../tenancy/users"
+import { buildPayrollProfiles } from "../operations/payroll-seed"
+import { resetOperations } from "../operations/store"
+import { buildShiftTemplates } from "../operations/templates"
 import { Collection } from "./collection"
 import type {
+  MockAlarm,
   MockArea,
   MockAuditEvent,
   MockCustomer,
+  MockLeave,
   MockLegalEntity,
   MockLocation,
+  MockLocationRules,
   MockOrgUnit,
+  MockPayrollExport,
+  MockPayrollProfile,
   MockPersonnel,
+  MockShiftTemplate,
   MockSupportSession,
   MockTag,
+  MockTimesheetOverride,
+  MockTimesheetPeriod,
   MockUser,
 } from "./types"
 
@@ -45,6 +56,18 @@ export const db = {
   areas: new Collection<MockArea>("areas"),
   tags: new Collection<MockTag>("tags"),
   personnel: new Collection<MockPersonnel>("personnel"),
+  // Faz 2. Vardiya atamaları ve giriş/çıkış kayıtları istek anında haftalık üretilir
+  // (bkz. mocks/operations/plan.ts); burada yalnızca kalıcı kayıtlar tutulur.
+  shiftTemplates: new Collection<MockShiftTemplate>("shiftTemplates"),
+  locationRules: new Collection<MockLocationRules>("locationRules"),
+  leaves: new Collection<MockLeave>("leaves"),
+  alarms: new Collection<MockAlarm>("alarms"),
+  timesheetPeriods: new Collection<MockTimesheetPeriod>("timesheetPeriods"),
+  timesheetOverrides: new Collection<MockTimesheetOverride>(
+    "timesheetOverrides"
+  ),
+  payrollProfiles: new Collection<MockPayrollProfile>("payrollProfiles"),
+  payrollExports: new Collection<MockPayrollExport>("payrollExports"),
 }
 
 /** Kiracıya ait iş verisi koleksiyonları ("Boş veri" senaryosu bunları temizler) */
@@ -57,6 +80,14 @@ export const TENANT_DATA_COLLECTIONS = [
   "areas",
   "tags",
   "personnel",
+  "shiftTemplates",
+  "locationRules",
+  "leaves",
+  "alarms",
+  "timesheetPeriods",
+  "timesheetOverrides",
+  "payrollProfiles",
+  "payrollExports",
 ] as const satisfies readonly (keyof typeof db)[]
 
 export type SeedProfile = "test" | "dev" | "scale"
@@ -98,10 +129,12 @@ export const SEED_PROFILES: Record<SeedProfile, ProfileDefinition> = {
 
 export function clearDatabase(): void {
   for (const collection of Object.values(db)) collection.clear()
+  resetOperations()
 }
 
 export function clearTenantData(): void {
   for (const name of TENANT_DATA_COLLECTIONS) db[name].clear()
+  resetOperations()
 }
 
 export function seedDatabase(
@@ -131,6 +164,8 @@ export function seedDatabase(
     db.tags.insertMany(data.tags)
     db.personnel.insertMany(data.personnel)
     db.users.insertMany(buildTenantUsers(tenant, data, SEED_REFERENCE_DATE))
+    db.shiftTemplates.insertMany(buildShiftTemplates(tenant))
+    db.payrollProfiles.insertMany(buildPayrollProfiles(tenant.slug))
     db.auditEvents.insert({
       id: `aud-${tenant.slug}-1`,
       tenantId: tenant.slug,

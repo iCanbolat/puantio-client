@@ -327,6 +327,8 @@ export function buildTenantMasterData(
     address: `${faker.location.street()} No:${faker.number.int({ min: 1, max: 120 })}, İstanbul`,
     isActive: true,
     createdAt: created,
+    // Çok hatlı grupta ikinci şirket farklı bordro profili kullanır (TC-2.6-06)
+    payrollProfileId: `pp-${slug}-${index === 1 ? "generic" : "logo"}`,
   }))
 
   const orgUnits = buildOrgUnits(tenant)

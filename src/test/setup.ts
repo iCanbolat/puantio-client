@@ -6,6 +6,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, vi } from "vitest"
 import { resetChaos } from "@/mocks/chaos"
 import { mockClock } from "@/mocks/clock"
 import { resetDatabase } from "@/mocks/db"
+import { setRealtimeBlocked } from "@/mocks/realtime"
 import { server } from "@/mocks/server"
 import { resetHttpConfig } from "@/shared/api/http"
 import { resetServerTime } from "@/shared/lib/server-time"
@@ -77,6 +78,7 @@ afterEach(() => {
   server.resetHandlers()
   mockClock.reset()
   resetChaos()
+  setRealtimeBlocked(false)
   resetServerTime()
   resetHttpConfig()
   resetUiStore()

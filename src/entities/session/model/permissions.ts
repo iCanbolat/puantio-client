@@ -42,6 +42,9 @@ export const PERMISSION_GROUPS = [
       { id: "attendance:correct", label: "Yoklama düzelt" },
       { id: "alarm:respond", label: "Alarmlara müdahale et" },
       { id: "alarm:escalate", label: "Alarm eskalasyonu" },
+      { id: "leave:read", label: "İzin ve raporları görüntüle" },
+      { id: "leave:request", label: "Personel adına izin talebi gir" },
+      { id: "leave:approve", label: "İzin talebini onayla veya reddet" },
     ],
   },
   {
@@ -51,7 +54,12 @@ export const PERMISSION_GROUPS = [
       { id: "timesheet:read", label: "Puantajı görüntüle" },
       { id: "timesheet:approve_region", label: "Puantaj bölge onayı" },
       { id: "timesheet:approve_hr", label: "Puantaj İK onayı" },
+      {
+        id: "timesheet:approve_customer",
+        label: "Puantajı müşteri adına onayla (portal)",
+      },
       { id: "payroll:export", label: "Bordro dışa aktar" },
+      { id: "payroll:profiles", label: "Bordro aktarım profillerini yönet" },
     ],
   },
   {

@@ -11,6 +11,9 @@ import {
   personnelQueries,
 } from "@/entities/personnel"
 import { Can } from "@/entities/session"
+import { PersonnelLeaveTab } from "@/features/leave"
+import { PersonnelShiftsTab } from "@/features/scheduling"
+import { PersonnelTimesheetTab } from "@/features/timesheet"
 import { SERVICE_LINE_LABELS, useTerms } from "@/entities/tenant"
 import { DetailList } from "@/shared/components/detail-list"
 import { EmptyState } from "@/shared/components/empty-state"
@@ -73,9 +76,9 @@ export function PersonnelEditPage() {
 
 const TABS = [
   { value: "genel", label: "Genel" },
-  { value: "vardiya", label: "Vardiya", phase: "2" },
-  { value: "puantaj", label: "Puantaj", phase: "2" },
-  { value: "izin", label: "İzin", phase: "2" },
+  { value: "vardiya", label: "Vardiya" },
+  { value: "puantaj", label: "Puantaj" },
+  { value: "izin", label: "İzin" },
   { value: "zimmet", label: "Zimmet", phase: "5" },
   { value: "isg", label: "İSG", phase: "6" },
   { value: "ozluk", label: "Özlük", phase: "6" },
@@ -234,6 +237,40 @@ export function PersonnelDetailPage() {
               />
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="vardiya" className="pt-4">
+          <Can
+            permission="schedule:read"
+            fallback={
+              <EmptyState title="Vardiya planını görüntüleme yetkiniz yok" />
+            }
+          >
+            <PersonnelShiftsTab personnelId={person.id} />
+          </Can>
+        </TabsContent>
+        <TabsContent value="izin" className="pt-4">
+          <Can
+            permission="leave:read"
+            fallback={
+              <EmptyState title="İzin kayıtlarını görüntüleme yetkiniz yok" />
+            }
+          >
+            <PersonnelLeaveTab
+              personnelId={person.id}
+              personnelName={`${person.firstName} ${person.lastName}`}
+            />
+          </Can>
+        </TabsContent>
+        <TabsContent value="puantaj" className="pt-4">
+          <Can
+            permission="timesheet:read"
+            fallback={<EmptyState title="Puantajı görüntüleme yetkiniz yok" />}
+          >
+            <PersonnelTimesheetTab
+              legalEntityId={person.legalEntityId}
+              employeeNumber={person.employeeNumber}
+            />
+          </Can>
         </TabsContent>
         {TABS.filter((tab) => "phase" in tab).map((tab) => (
           <TabsContent key={tab.value} value={tab.value} className="pt-4">

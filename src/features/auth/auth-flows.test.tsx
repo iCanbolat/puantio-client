@@ -34,7 +34,7 @@ describe("Faz 1.1 kimlik doğrulama (Keycloak / mock adaptör)", () => {
       screen.getByRole("button", { name: "E-posta ile giriş yap" })
     )
     expect(
-      await screen.findByText("Bu modül Faz 2'de geliştirilecek.")
+      await screen.findByRole("heading", { name: "Puantaj", level: 1 })
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe("/puantaj")
   })

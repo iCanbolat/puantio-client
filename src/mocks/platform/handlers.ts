@@ -6,6 +6,8 @@ import {
   updateTenantSchema,
 } from "@/features/platform-admin/model/platform"
 
+import { DEFAULT_LABOR_RULES } from "@/entities/tenant"
+
 import { withAuth } from "../auth/context"
 import { mockClock } from "../clock"
 import { db, newId } from "../db"
@@ -116,6 +118,8 @@ export const platformHandlers = [
           idleTimeoutMinutes: 30,
           lateToleranceMinutes: 10,
           alarmSlaMinutes: 15,
+          escalationMinutes: 15,
+          labor: { ...DEFAULT_LABOR_RULES },
           geofence: { min: 25, max: 1000, default: 100 },
         },
         createdAt: mockClock.now().toISOString(),

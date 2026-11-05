@@ -151,9 +151,9 @@ describe("Batch 1.6 personel", () => {
       screen.getByRole("button", { name: "T.C. Kimlik No göster" })
     )
     expect(screen.getByText(person.tckn)).toBeInTheDocument()
-    await user.click(screen.getByRole("tab", { name: "Vardiya" }))
+    await user.click(screen.getByRole("tab", { name: "Zimmet" }))
     expect(
-      await screen.findByText("Bu sekme Faz 2'de doldurulacak.")
+      await screen.findByText("Bu sekme Faz 5'de doldurulacak.")
     ).toBeInTheDocument()
   })
 

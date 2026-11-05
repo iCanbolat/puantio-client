@@ -44,6 +44,8 @@ export interface MockLegalEntity extends Tenanted {
   address: string | null
   isActive: boolean
   createdAt: string
+  /** Varsayılan bordro aktarım profili */
+  payrollProfileId: string | null
 }
 
 export interface MockOrgUnit extends Tenanted {
@@ -147,4 +149,153 @@ export interface MockPlatformUser {
   email: string
   title: string | null
   permissions: Permission[]
+}
+
+/* ───────────────────────── Faz 2: vardiya, yoklama, puantaj ───────────────────────── */
+
+export interface MockShiftTemplate extends Tenanted {
+  code: string
+  name: string
+  kind: "standard" | "split" | "rotation"
+  segments: { start: string; end: string }[]
+  breakMinutes: number
+  color: "sky" | "amber" | "indigo" | "emerald" | "rose" | "slate"
+  rotation: ({ kind: "shift"; templateId: string } | { kind: "off" })[] | null
+  isActive: boolean
+}
+
+/** Lokasyon bazlı yoklama kuralları (kiracı varsayılanını daraltır) */
+export interface MockLocationRules extends Tenanted {
+  lateToleranceMinutes: number | null
+  alarmSlaMinutes: number | null
+}
+
+export interface MockShiftAssignment extends Tenanted {
+  personnelId: string
+  locationId: string
+  date: string
+  templateId: string | null
+  code: string
+  startsAt: string
+  endsAt: string
+  breakMinutes: number
+  kind: "regular" | "backup"
+  /** Yedek atamada yerine geçilen vardiya */
+  replacesShiftId: string | null
+}
+
+export interface MockAttendanceEvent extends Tenanted {
+  shiftId: string
+  personnelId: string
+  kind: "in" | "out"
+  method: "qr" | "nfc" | "manual"
+  deviceTime: string
+  receivedAt: string
+  offline: boolean
+  inside: boolean
+  distanceMeters: number
+  hasPhoto: boolean
+  corrected: boolean
+}
+
+export interface MockLeave extends Tenanted {
+  personnelId: string
+  type:
+    | "annual"
+    | "excuse"
+    | "unpaid"
+    | "maternity"
+    | "administrative"
+    | "sick_report"
+  startDate: string
+  endDate: string
+  days: number
+  status: "pending" | "approved" | "rejected" | "cancelled"
+  note: string | null
+  requestedAt: string
+  requestedBy: string
+  decidedAt: string | null
+  decidedBy: string | null
+  decisionNote: string | null
+}
+
+export interface MockAlarm extends Tenanted {
+  shiftId: string
+  personnelId: string
+  locationId: string
+  createdAt: string
+  dueAt: string
+  status: "open" | "escalated" | "resolved"
+  escalatedAt: string | null
+  resolvedAt: string | null
+  resolvedBy: string | null
+  resolution: {
+    reason:
+      | "late_arrival"
+      | "on_leave"
+      | "system_error"
+      | "shift_cancelled"
+      | "other"
+      | "backup_assigned"
+    note: string | null
+    backupPersonnelId: string | null
+  } | null
+  notes: { at: string; author: string; text: string }[]
+}
+
+export interface MockTimesheetPeriod extends Tenanted {
+  legalEntityId: string
+  month: string
+  status:
+    "open" | "region_approved" | "customer_approved" | "hr_approved" | "locked"
+  customerApprovalRequired: boolean
+  history: { at: string; actor: string; action: string }[]
+  changes: {
+    at: string
+    actor: string
+    personnelId: string
+    date: string
+    before: string | null
+    after: string
+  }[]
+}
+
+/** Elle düzeltilen puantaj hücresi. id: `${periodId}|${personnelId}|${date}` */
+export interface MockTimesheetOverride extends Tenanted {
+  periodId: string
+  personnelId: string
+  date: string
+  code: string
+  overtimeHours: number
+  by: string
+  at: string
+}
+
+export interface MockPayrollProfile extends Tenanted {
+  name: string
+  description: string
+  libraryKey: "logo-bordro-plus" | "generic-csv" | null
+  simulated: boolean
+  format: "xlsx" | "csv" | "txt"
+  encoding: "utf-8" | "windows-1254"
+  delimiter: ";" | "," | "\t" | "|"
+  decimalSeparator: "," | "."
+  includeHeader: boolean
+  columns: unknown[]
+  codeMap: Record<string, string>
+  updatedAt: string
+}
+
+export interface MockPayrollExport extends Tenanted {
+  periodId: string
+  profileId: string
+  profileName: string
+  fileName: string
+  format: "xlsx" | "csv" | "txt"
+  encoding: "utf-8" | "windows-1254"
+  rowCount: number
+  createdAt: string
+  createdBy: string
+  bytes: Uint8Array
+  contentType: string
 }

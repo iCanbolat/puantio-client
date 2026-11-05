@@ -22,6 +22,8 @@ export const legalEntitySchema = z.object({
   isActive: z.boolean(),
   personnelCount: z.number().int().min(0),
   createdAt: isoDateTimeSchema,
+  /** Varsayılan bordro aktarım profili (Faz 2). Eski yanıtlarda yoksa `null`. */
+  payrollProfileId: z.string().nullable().default(null),
 })
 export type LegalEntity = z.infer<typeof legalEntitySchema>
 

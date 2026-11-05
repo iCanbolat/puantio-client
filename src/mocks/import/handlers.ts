@@ -245,6 +245,7 @@ function importRow(
       address: null,
       isActive: true,
       createdAt: now(),
+      payrollProfileId: null,
       ...data,
     })
   return null
