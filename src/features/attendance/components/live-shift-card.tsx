@@ -23,7 +23,7 @@ export function LiveShiftCard({
         aria-label={`${shift.personnelName}, ${shift.locationName}, ${formatTime(shift.startsAt)}: ${ATTENDANCE_STATUS_LABELS[shift.status]}`}
         className={cn(
           "flex w-full flex-col gap-2 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-          shift.status === "no_show" && "border-destructive/50 bg-destructive/5"
+          shift.status === "no_show" && "border-l-4 border-destructive"
         )}
       >
         <span className="flex items-start gap-2">

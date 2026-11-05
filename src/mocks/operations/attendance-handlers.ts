@@ -282,6 +282,8 @@ export const attendanceHandlers = [
           id: `ev-${assignment.id}-cin-${now.getTime()}`,
           kind: "in",
           deviceTime: checkInAt,
+          // Elle girilen kayıt gerçekleştiği ana yazılır (senkron/sapma anomalisi üretmez)
+          receivedAt: checkInAt,
         },
       ]
       if (checkOutAt) {

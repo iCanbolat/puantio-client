@@ -14,7 +14,8 @@ const toneClasses: Record<StatusTone, { badge: string; dot: string }> = {
     dot: "bg-amber-500",
   },
   danger: {
-    badge: "bg-destructive/10 text-destructive",
+    // text-destructive, açık zeminde 4.5:1 sınırının altında kalıyor
+    badge: "bg-destructive/10 text-red-700 dark:text-red-400",
     dot: "bg-destructive",
   },
   info: {

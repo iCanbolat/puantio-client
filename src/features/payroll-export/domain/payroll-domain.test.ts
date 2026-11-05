@@ -120,7 +120,7 @@ describe("Batch 2.6 bordro aktarımı", () => {
   })
 
   it("TC-2.6-03 gün toplamı tutmayan personel satırı hatalıdır", () => {
-    const broken = [...SEPTEMBER]
+    const broken: (CellCode | null)[] = [...SEPTEMBER]
     broken[3] = "?"
     broken[4] = null
     const table = buildPayrollTable(LOGO_BORDRO_PLUS, context, [

@@ -37,6 +37,7 @@ import { PLATFORM_USER_KEY, UNPROVISIONED_KEY } from "../auth/identities"
 import { mockController } from "../browser"
 import { HTTP_METHODS, type FaultMethod } from "../chaos"
 import { mockClock } from "../clock"
+import { isRealtimeBlocked } from "../realtime"
 import { SEED_PROFILES, db, type SeedProfile } from "../db"
 import { findScenario, scenarios } from "../scenarios"
 import { useMockDevtoolsStore } from "./devtools-store"
@@ -89,6 +90,8 @@ export function MockDevtools() {
   const queryClient = useQueryClient()
   const state = useMockDevtoolsStore()
   const now = useMockNow()
+  const [fieldMessage, setFieldMessage] = useState<string | null>(null)
+  const [realtimeBlocked, setRealtimeBlockedState] = useState(isRealtimeBlocked)
   const [clockInput, setClockInput] = useState(() =>
     toLocalInput(mockClock.now())
   )
@@ -364,6 +367,48 @@ export function MockDevtools() {
                 Gerçek saat
               </Button>
             </div>
+          </Section>
+
+          <Separator />
+
+          <Section title="Saha simülasyonu">
+            <p className="text-sm text-muted-foreground">
+              Saha uygulamasından gelen olaylar. Alarm değerlendirmesi 10 sn'de
+              bir ve saat değiştiğinde çalışır.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const personnelId = mockController.simulateCheckIn()
+                  setFieldMessage(
+                    personnelId
+                      ? "Bekleyen bir personel giriş yaptı."
+                      : "Şu an giriş bekleyen vardiya yok."
+                  )
+                }}
+              >
+                Giriş gönder (QR)
+              </Button>
+              <Button
+                variant={realtimeBlocked ? "destructive" : "outline"}
+                size="sm"
+                aria-pressed={realtimeBlocked}
+                onClick={() => {
+                  setRealtimeBlockedState(mockController.toggleRealtime())
+                }}
+              >
+                {realtimeBlocked
+                  ? "Canlı bağlantıyı aç"
+                  : "Canlı bağlantıyı kopar"}
+              </Button>
+            </div>
+            {fieldMessage ? (
+              <p role="status" className="text-xs text-muted-foreground">
+                {fieldMessage}
+              </p>
+            ) : null}
           </Section>
 
           <Separator />

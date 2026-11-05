@@ -21,7 +21,14 @@ import {
 } from "./devtools/devtools-store"
 import { handlers } from "./handlers"
 import { restoreSupportSessions } from "./platform/persistence"
-import { broadcastServerTime } from "./realtime"
+import { evaluateAlarms } from "./operations/attendance"
+import { simulateCheckIn } from "./operations/attendance-handlers"
+import { db } from "./db"
+import {
+  broadcastServerTime,
+  isRealtimeBlocked,
+  setRealtimeBlocked,
+} from "./realtime"
 import { DEFAULT_SCENARIO_ID, applyScenario, findScenario } from "./scenarios"
 
 export const worker = setupWorker(...handlers)
@@ -32,6 +39,13 @@ function publishClock() {
   const now = mockClock.now().toISOString()
   syncServerTime(now)
   broadcastServerTime()
+  evaluateCurrentTenant()
+}
+
+/** Gerçek backend'deki alarm zamanlayıcısının mock karşılığı */
+function evaluateCurrentTenant() {
+  const tenant = db.tenants.findById(store().tenantSlug || DEFAULT_MOCK_TENANT)
+  if (tenant?.kind === "tenant") evaluateAlarms(tenant)
 }
 
 /**
@@ -78,6 +92,16 @@ export const mockController = {
   signInAs(userKey: string) {
     store().set({ mockUserKey: userKey, pendingSignIn: true })
     window.location.reload()
+  },
+  /** Saha uygulamasından giriş: bekleyen ilk personel QR ile giriş yapar */
+  simulateCheckIn(): string | null {
+    return simulateCheckIn(store().tenantSlug || DEFAULT_MOCK_TENANT)
+  },
+  /** Canlı bağlantıyı kopar / aç; yeni durumu döner */
+  toggleRealtime(): boolean {
+    const next = !isRealtimeBlocked()
+    setRealtimeBlocked(next)
+    return next
   },
   resetAll() {
     mockClock.reset()
@@ -157,6 +181,8 @@ export async function startMocking(): Promise<void> {
   applyScenario(worker, scenarioId, state.seedProfile)
   restoreSupportSessions()
   syncServerTime(mockClock.now().toISOString())
+
+  setInterval(evaluateCurrentTenant, 10_000)
 
   await worker.start({
     quiet: true,

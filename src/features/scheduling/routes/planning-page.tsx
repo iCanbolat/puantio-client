@@ -329,10 +329,17 @@ export function PlanningPage() {
         <DndContext sensors={sensors} onDragEnd={onDragEnd}>
           <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
             <aside className="flex flex-col gap-4">
-              <ShiftPalette
-                templates={templatesQuery.data?.items ?? []}
-                disabled={readOnly}
-              />
+              {readOnly ? (
+                <p className="text-sm text-muted-foreground">
+                  Planı görüntüleme yetkiniz var; değişiklik için vardiya
+                  planlama yetkisi gerekir.
+                </p>
+              ) : (
+                <ShiftPalette
+                  templates={templatesQuery.data?.items ?? []}
+                  disabled={false}
+                />
+              )}
               {readOnly ? null : (
                 <div className="flex flex-col gap-2">
                   <Button

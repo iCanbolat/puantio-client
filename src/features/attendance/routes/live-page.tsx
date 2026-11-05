@@ -53,7 +53,7 @@ export function LivePage() {
           <Link
             to={paths.attendance.alarms()}
             className={buttonVariants({
-              variant: counts?.no_show ? "destructive" : "outline",
+              variant: counts?.no_show ? "default" : "outline",
             })}
           >
             <SirenIcon data-icon="inline-start" />

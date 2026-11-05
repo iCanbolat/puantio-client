@@ -1,4 +1,8 @@
-import { useVirtualizer } from "@tanstack/react-virtual"
+import {
+  observeElementRect,
+  useVirtualizer,
+  type Virtualizer,
+} from "@tanstack/react-virtual"
 import { useRef } from "react"
 
 import { cn } from "@/shared/lib/utils"
@@ -33,6 +37,21 @@ const TONE_CLASSES: Record<CellTone, string> = {
 
 const fmt = (value: number) => value.toLocaleString("tr-TR")
 
+const FALLBACK_RECT = { width: 1600, height: 560 }
+
+/**
+ * Ölçülemeyen kapsayıcıda (gizli sekme, test ortamı) 0×0 boyut yerine varsayılan pencere
+ * kullanılır; aksi halde hiç satır çizilmez.
+ */
+function observeRectWithFallback<TItem extends Element>(
+  instance: Virtualizer<HTMLDivElement, TItem>,
+  callback: (rect: { width: number; height: number }) => void
+) {
+  return observeElementRect(instance, (rect) => {
+    callback(rect.width === 0 && rect.height === 0 ? FALLBACK_RECT : rect)
+  })
+}
+
 /**
  * Personel × gün puantaj grid'i. Hem satır hem sütun ekseninde sanallaştırılır (6.000
  * personel × 31 gün). Klavye: hücreler buton; düzenleme diyaloğu açar.
@@ -57,7 +76,8 @@ export function TimesheetGrid({
     getScrollElement: () => scrollRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 10,
-    initialRect: { width: 1200, height: 560 },
+    initialRect: FALLBACK_RECT,
+    observeElementRect: observeRectWithFallback,
   })
   const columnVirtualizer = useVirtualizer({
     horizontal: true,
@@ -66,7 +86,8 @@ export function TimesheetGrid({
     estimateSize: () => CELL_WIDTH,
     overscan: 6,
     paddingStart: NAME_WIDTH,
-    initialRect: { width: 1600, height: 560 },
+    initialRect: FALLBACK_RECT,
+    observeElementRect: observeRectWithFallback,
   })
   const totalWidth =
     NAME_WIDTH +

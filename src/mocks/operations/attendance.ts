@@ -87,20 +87,25 @@ export function snapshotShift(
   const hasBackup = backupFor(assignment) !== null
   const startsAt = new Date(assignment.startsAt)
   const checkInAt = checkIn ? new Date(checkIn.deviceTime) : null
+  const status = deriveAttendanceStatus({
+    startsAt,
+    endsAt: new Date(assignment.endsAt),
+    checkIn: checkInAt,
+    checkOut: checkOut ? new Date(checkOut.deviceTime) : null,
+    hasBackup,
+    now,
+    toleranceMinutes: rules.toleranceMinutes,
+  })
   return {
     events,
     checkIn,
     checkOut,
     hasBackup,
-    status: deriveAttendanceStatus({
-      startsAt,
-      endsAt: new Date(assignment.endsAt),
-      checkIn: checkInAt,
-      checkOut: checkOut ? new Date(checkOut.deviceTime) : null,
-      hasBackup,
-      now,
-      toleranceMinutes: rules.toleranceMinutes,
-    }),
+    // Yedek görevli sonradan atanır: yolda olduğu için "Gelmedi" sayılmaz, beklenir
+    status:
+      assignment.kind === "backup" && status === "no_show"
+        ? "expected"
+        : status,
     lateMinutes: lateMinutes(startsAt, checkInAt),
     anomalies: detectAnomalies({
       endsAt: new Date(assignment.endsAt),
