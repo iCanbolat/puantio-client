@@ -2,6 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { mockClock } from "@/mocks/clock"
+import { addStaffingContract } from "@/mocks/contracts/testing"
 import { db } from "@/mocks/db"
 import { expectNoA11yViolations } from "@/test/a11y"
 import { renderApp } from "@/test/render"
@@ -182,7 +183,8 @@ describe("Batch 2.5 aylık puantaj", () => {
     const location = db.locations.findFirst(
       (item) => item.customerId === customerId
     )!
-    db.locations.update(location.id, { serviceLines: ["staffing"] })
+    // Faz 3: müşteri onayı personel temini sözleşmesinden gelir
+    addStaffingContract("temizlik-orta", "le-temizlik-orta-1", [location.id])
     const person = db.personnel.findFirst(
       (item) => item.tenantId === "temizlik-orta" && item.status === "active"
     )!

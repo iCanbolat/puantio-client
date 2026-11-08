@@ -36,28 +36,25 @@ function employedOn(person: MockPersonnel, date: string): boolean {
   return !person.terminationDate || person.terminationDate >= date
 }
 
-/** Personel temini hizmetinde çalışan personel varsa dönem müşteri onayı ister */
+/**
+ * Dönem, tüzel kişiliğin o ay yürürlükte olan bir **personel temini sözleşmesi** varsa
+ * müşteri onayı ister (Faz 3: karar sözleşmeden gelir).
+ */
 export function customerApprovalRequired(
   tenantId: string,
-  legalEntityId: string
+  legalEntityId: string,
+  month: string
 ): boolean {
-  const staffing = new Set(
-    db.locations
-      .findMany(
-        (location) =>
-          location.tenantId === tenantId &&
-          location.serviceLines.includes("staffing")
-      )
-      .map((location) => location.id)
-  )
-  if (staffing.size === 0) return false
+  const range = monthRange(month)
   return (
-    db.personnel.count(
-      (person) =>
-        person.tenantId === tenantId &&
-        person.legalEntityId === legalEntityId &&
-        person.homeLocationId !== null &&
-        staffing.has(person.homeLocationId)
+    db.contracts.count(
+      (contract) =>
+        contract.tenantId === tenantId &&
+        contract.type === "staffing" &&
+        contract.contractorLegalEntityId === legalEntityId &&
+        contract.startDate <= range.to &&
+        contract.endDate >= range.from &&
+        (contract.terminatedAt === null || contract.terminatedAt >= range.from)
     ) > 0
   )
 }
@@ -89,7 +86,8 @@ export function ensurePeriods(tenant: MockTenant, now: Date): void {
         status,
         customerApprovalRequired: customerApprovalRequired(
           tenant.slug,
-          entity.id
+          entity.id,
+          month
         ),
         history:
           status === "locked"

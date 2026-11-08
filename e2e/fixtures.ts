@@ -73,6 +73,10 @@ export const test = base.extend<Fixtures>({
         "wcag21aa",
       ])
       if (options.include) builder = builder.include(options.include)
+      // Canlı alarm bildirimleri (toast) gürültü verisiyle her an düşebilir; giriş
+      // animasyonunun ara karesinde ölçülürse sahte kontrast ihlali verir. Geçici
+      // bildirim bölgesi sayfa denetimine dahil edilmez.
+      builder = builder.exclude("[data-sonner-toaster]")
       // Varyant değişen buton/bağlantılar (ör. outline → default) `transition-all`
       // ile renk geçişi yapar; axe ara karede ölçerse sahte kontrast ihlali verir.
       // Sonlu animasyon/geçişlerin bitmesini bekle (sonsuz pulse/spin hariç).

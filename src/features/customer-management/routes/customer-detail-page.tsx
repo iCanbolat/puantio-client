@@ -9,9 +9,10 @@ import {
   CUSTOMER_TYPE_LABELS,
   customerQueries,
 } from "@/entities/customer"
+import { CustomerContractsCard } from "@/entities/contract"
 import { locationQueries } from "@/entities/location"
 import { Can } from "@/entities/session"
-import { useTerms } from "@/entities/tenant"
+import { useHasModule, useTerms } from "@/entities/tenant"
 import { DetailList } from "@/shared/components/detail-list"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorState } from "@/shared/components/error-state"
@@ -42,6 +43,7 @@ export function CustomerDetailPage() {
     locationQueries.list({ page: 1, pageSize: 50, customerId })
   )
   const [editing, setEditing] = useState(false)
+  const contractsModule = useHasModule("contracts")
 
   if (query.isPending) return <PageSkeleton />
   if (query.isError)
@@ -190,6 +192,11 @@ export function CustomerDetailPage() {
           )}
         </CardContent>
       </Card>
+      {contractsModule ? (
+        <Can permission="contract:read">
+          <CustomerContractsCard customerId={customer.id} />
+        </Can>
+      ) : null}
       <CustomerDialog
         open={editing}
         customer={customer}

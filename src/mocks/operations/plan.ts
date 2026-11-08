@@ -42,7 +42,8 @@ function isScenarioPerson(personnelId: string): boolean {
   return (
     flags.noShowPersonnelIds.has(personnelId) ||
     flags.offlineBurstPersonnelIds.has(personnelId) ||
-    flags.geofenceViolations.has(personnelId)
+    flags.geofenceViolations.has(personnelId) ||
+    flags.steadyPersonnelIds.has(personnelId)
   )
 }
 

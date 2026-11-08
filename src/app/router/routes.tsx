@@ -8,6 +8,7 @@ import {
   type AuthController,
 } from "@/features/auth"
 import { attendanceRoutes } from "@/features/attendance"
+import { contractRoutes } from "@/features/contracts"
 import { customerRoutes } from "@/features/customer-management"
 import { devShowcaseRoute } from "@/features/dev-showcase"
 import { locationRoutes } from "@/features/location-management"
@@ -17,6 +18,10 @@ import { organizationRoutes } from "@/features/organization"
 import { payrollRoutes } from "@/features/payroll-export"
 import { personnelRoutes } from "@/features/personnel-management"
 import { platformRoutes } from "@/features/platform-admin"
+import {
+  CustomerProgressPayments,
+  progressPaymentRoutes,
+} from "@/features/progress-payment"
 import { schedulingRoutes } from "@/features/scheduling"
 import { tenantSettingsRoutes } from "@/features/tenant-settings"
 import {
@@ -66,18 +71,6 @@ const UPCOMING: {
   phase: string
   handle: RouteHandle
 }[] = [
-  {
-    path: routePatterns.upcoming.contracts,
-    title: "Sözleşmeler",
-    phase: "3",
-    handle: { permission: "contract:read", module: "contracts" },
-  },
-  {
-    path: routePatterns.upcoming.progressPayment,
-    title: "Hakediş",
-    phase: "3",
-    handle: { permission: "progress_payment:read", module: "contracts" },
-  },
   {
     path: routePatterns.upcoming.quality,
     title: "Kalite denetimleri",
@@ -138,6 +131,8 @@ export function createRoutes(context: RouteContext): RouteObject[] {
   const attendance = attendanceRoutes(queryClient)
   const timesheet = timesheetRoutes(queryClient)
   const payroll = payrollRoutes()
+  const contracts = contractRoutes(queryClient)
+  const payments = progressPaymentRoutes(queryClient)
 
   const panelChildren: RouteObject[] = [
     {
@@ -291,6 +286,64 @@ export function createRoutes(context: RouteContext): RouteObject[] {
       ],
     },
     {
+      path: routePatterns.contractList,
+      handle: handle({
+        crumb: "Sözleşmeler",
+        permission: "contract:read",
+        module: "contracts",
+      }),
+      children: [
+        { index: true, ...contracts.list },
+        {
+          path: routePatterns.contractNew,
+          handle: handle({
+            crumb: "Yeni sözleşme",
+            permission: "contract:write",
+          }),
+          ...contracts.create,
+        },
+        {
+          path: routePatterns.contractDetail,
+          handle: handle({ crumb: "Sözleşme" }),
+          ...contracts.detail,
+        },
+      ],
+    },
+    {
+      path: routePatterns.headcountReport,
+      handle: handle({
+        crumb: "Kadro raporu",
+        permission: "contract:read",
+        module: "contracts",
+      }),
+      ...contracts.headcount,
+    },
+    {
+      path: routePatterns.progressPaymentList,
+      handle: handle({
+        crumb: "Hakediş",
+        permission: "progress_payment:read",
+        module: "contracts",
+      }),
+      children: [
+        { index: true, ...payments.list },
+        {
+          path: routePatterns.progressPaymentDetail,
+          handle: handle({ crumb: "Hakediş" }),
+          ...payments.detail,
+        },
+      ],
+    },
+    {
+      path: routePatterns.settingsContractTemplates,
+      handle: handle({
+        crumb: "Sözleşme şablonları",
+        permission: "contract:read",
+        module: "contracts",
+      }),
+      ...contracts.templates,
+    },
+    {
       path: routePatterns.import,
       handle: handle({
         crumb: "Excel'den içe aktar",
@@ -403,6 +456,22 @@ export function createRoutes(context: RouteContext): RouteObject[] {
               handle: handle({ permission: "location:read" }),
               ...locations.print,
             },
+            {
+              path: routePatterns.printHeadcount,
+              handle: handle({
+                permission: "contract:read",
+                module: "contracts",
+              }),
+              ...contracts.headcountPrint,
+            },
+            {
+              path: routePatterns.printProgressPayment,
+              handle: handle({
+                permission: "progress_payment:read",
+                module: "contracts",
+              }),
+              ...payments.print,
+            },
           ],
         },
         {
@@ -467,6 +536,14 @@ export function createRoutes(context: RouteContext): RouteObject[] {
                   path: routePatterns.portalTimesheet,
                   handle: handle({ permission: "timesheet:approve_customer" }),
                   Component: CustomerTimesheetApprovals,
+                },
+                {
+                  path: routePatterns.portalProgressPayments,
+                  handle: handle({
+                    permission: "progress_payment:approve_customer",
+                    module: "contracts",
+                  }),
+                  Component: CustomerProgressPayments,
                 },
               ],
             },

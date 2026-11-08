@@ -46,9 +46,17 @@ export const routePatterns = {
   payroll: "/bordro",
   payrollProfiles: "/bordro/profiller",
   portalTimesheet: "/portal/puantaj-onaylari",
+  contractList: "/sozlesmeler",
+  contractNew: "/sozlesmeler/yeni",
+  contractDetail: "/sozlesmeler/:contractId",
+  headcountReport: "/kadro-raporu",
+  progressPaymentList: "/hakedis",
+  progressPaymentDetail: "/hakedis/:paymentId",
+  settingsContractTemplates: "/ayarlar/sozlesme-sablonlari",
+  printHeadcount: "/baski/kadro-raporu",
+  printProgressPayment: "/baski/hakedis/:paymentId",
+  portalProgressPayments: "/portal/hakedisler",
   upcoming: {
-    contracts: "/sozlesmeler",
-    progressPayment: "/hakedis",
     quality: "/kalite",
     workOrders: "/is-emirleri",
     inventory: "/stok",
@@ -89,6 +97,7 @@ export const paths = {
   devShowcase: () => routePatterns.devShowcase,
   portal: {
     home: () => routePatterns.portalHome,
+    progressPayments: () => routePatterns.portalProgressPayments,
   },
   publicFeedback: (token: string) => `/q/${enc(token)}`,
   personnel: {
@@ -134,6 +143,39 @@ export const paths = {
     exports: (periodId?: string) =>
       withQuery(routePatterns.payroll, { donem: periodId }),
     profiles: () => routePatterns.payrollProfiles,
+  },
+  contracts: {
+    list: () => routePatterns.contractList,
+    new: () => routePatterns.contractNew,
+    detail: (id: string, tab?: string) =>
+      withQuery(`/sozlesmeler/${enc(id)}`, { sekme: tab }),
+    headcount: (
+      query: { month?: string; contractId?: string; orgUnitId?: string } = {}
+    ) =>
+      withQuery(routePatterns.headcountReport, {
+        ay: query.month,
+        sozlesme: query.contractId,
+        bolge: query.orgUnitId,
+      }),
+    templates: () => routePatterns.settingsContractTemplates,
+  },
+  progressPayments: {
+    list: (query: { contractId?: string } = {}) =>
+      withQuery(routePatterns.progressPaymentList, {
+        contractId: query.contractId,
+      }),
+    detail: (id: string) => `/hakedis/${enc(id)}`,
+  },
+  print: {
+    headcount: (
+      query: { month?: string; contractId?: string; orgUnitId?: string } = {}
+    ) =>
+      withQuery(routePatterns.printHeadcount, {
+        ay: query.month,
+        sozlesme: query.contractId,
+        bolge: query.orgUnitId,
+      }),
+    progressPayment: (id: string) => `/baski/hakedis/${enc(id)}`,
   },
   customers: {
     list: () => routePatterns.customerList,

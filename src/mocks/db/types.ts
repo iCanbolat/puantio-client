@@ -299,3 +299,102 @@ export interface MockPayrollExport extends Tenanted {
   bytes: Uint8Array
   contentType: string
 }
+
+/* ───────────────────────── Faz 3: sözleşme ve hakediş ───────────────────────── */
+
+/** Sözleşme sürümü (kapsam, kadro, fiyat, kural). Adlar yanıt üretilirken eklenir. */
+export interface MockContractVersion {
+  id: string
+  number: number
+  effectiveFrom: string
+  /** Son sürümde sözleşme bitişi */
+  effectiveTo: string
+  note: string | null
+  createdAt: string
+  createdBy: string
+  serviceLines: ServiceLine[]
+  scopeItems: { serviceLine: ServiceLine; description: string }[]
+  locations: { locationId: string; from: string; to: string | null }[]
+  commitments: {
+    locationId: string
+    position: Position
+    headcount: number
+    coverage: "weekdays" | "six_days" | "all_days"
+  }[]
+  prices: {
+    unitPrices: { position: Position; monthly: number }[]
+    overtimeHourly: number
+    materialMonthly: number
+  }
+  rules: MockContractRules
+}
+
+export interface MockContractRules {
+  shortfallDeductionPercent: number
+  shortfallPenaltyPerPersonDay: number
+  vatRate: number
+  priceAdjustment: {
+    kind: "none" | "min_wage" | "fixed_rate"
+    laborSharePercent: number
+    ratePercent: number | null
+    effectiveFrom: string | null
+  }
+  penalties: {
+    code: string
+    label: string
+    kind: "fixed" | "percent"
+    amount: number
+  }[]
+}
+
+export interface MockContract extends Tenanted {
+  code: string
+  title: string
+  type: "public_tender" | "private" | "staffing"
+  ikn: string | null
+  customerId: string
+  contractorLegalEntityId: string
+  startDate: string
+  endDate: string
+  terminatedAt: string | null
+  templateId: string | null
+  versions: MockContractVersion[]
+  updatedAt: string
+}
+
+export interface MockContractTemplate extends Tenanted {
+  name: string
+  description: string
+  contractType: "public_tender" | "private" | "staffing"
+  builtIn: boolean
+  rules: MockContractRules
+  updatedAt: string
+}
+
+/** Hakediş. `source`: hesaba esas kişi-gün verisi (fark ve yeniden hesap için saklanır). */
+export interface MockProgressPayment extends Tenanted {
+  number: string
+  contractId: string
+  month: string
+  status: "draft" | "review" | "customer_approval" | "approved" | "invoiced"
+  penalties: {
+    code: string
+    label: string
+    kind: "fixed" | "percent"
+    amount: number
+    quantity: number
+    note: string | null
+  }[]
+  source: {
+    locationId: string
+    position: Position
+    date: string
+    personDays: number
+    overtimeHours: number
+  }[]
+  fingerprint: string
+  calculatedAt: string
+  invoiceNumber: string | null
+  history: { at: string; actor: string; action: string; note: string | null }[]
+  updatedAt: string
+}

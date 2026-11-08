@@ -5,6 +5,7 @@ import {
   Building2Icon,
   CalendarClockIcon,
   ClipboardCheckIcon,
+  FileCogIcon,
   FileSignatureIcon,
   FileSpreadsheetIcon,
   FlaskConicalIcon,
@@ -25,6 +26,7 @@ import {
   TruckIcon,
   UserCogIcon,
   UsersIcon,
+  UsersRoundIcon,
   WrenchIcon,
   type LucideIcon,
 } from "lucide-react"
@@ -175,6 +177,15 @@ export function buildNavigation(options: {
         {
           label: "Sözleşmeler",
           icon: FileSignatureIcon,
+          to: paths.contracts.list(),
+          phase: 3,
+          permission: "contract:read",
+          module: "contracts",
+        },
+        {
+          label: "Kadro raporu",
+          icon: UsersRoundIcon,
+          to: paths.contracts.headcount(),
           phase: 3,
           permission: "contract:read",
           module: "contracts",
@@ -182,6 +193,7 @@ export function buildNavigation(options: {
         {
           label: "Hakediş",
           icon: ReceiptTextIcon,
+          to: paths.progressPayments.list(),
           phase: 3,
           permission: "progress_payment:read",
           module: "contracts",
@@ -292,6 +304,14 @@ export function buildNavigation(options: {
           to: paths.settings.orgUnits(),
           phase: 1,
           permission: "org:read",
+        },
+        {
+          label: "Sözleşme şablonları",
+          icon: FileCogIcon,
+          to: paths.contracts.templates(),
+          phase: 3,
+          permission: "contract:read",
+          module: "contracts",
         },
         {
           label: "Denetim kayıtları",

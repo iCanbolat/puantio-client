@@ -10,6 +10,13 @@ export default defineConfig({
     // Excel içe aktarma sayfası SheetJS içerir (~166 KB gzip); yalnızca /ice-aktar açılınca yüklenir
     chunkSizeWarningLimit: 600,
   },
+  server: {
+    // Soğuk başlatılan sunucuda (E2E) lazy sayfaların ilk derlemesi zaman aşımına
+    // yol açmasın: giriş ve route modülleri açılışta önceden derlenir.
+    warmup: {
+      clientFiles: ["./src/main.tsx", "./src/features/*/routes/*.tsx"],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),

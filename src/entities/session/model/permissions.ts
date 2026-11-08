@@ -69,7 +69,11 @@ export const PERMISSION_GROUPS = [
       { id: "contract:read", label: "Sözleşmeleri görüntüle" },
       { id: "contract:write", label: "Sözleşme düzenle" },
       { id: "progress_payment:read", label: "Hakedişi görüntüle" },
-      { id: "progress_payment:approve", label: "Hakediş onayla" },
+      { id: "progress_payment:approve", label: "Hakediş hazırla ve onayla" },
+      {
+        id: "progress_payment:approve_customer",
+        label: "Hakedişi müşteri olarak onayla",
+      },
     ],
   },
   {

@@ -32,6 +32,7 @@ import { addDaysIso } from "@/shared/lib/work-time"
 import { identityFor } from "./auth/identities"
 import { mintMockToken } from "./auth/token"
 import { mockClock } from "./clock"
+import { addStaffingContract } from "./contracts/testing"
 import { db } from "./db"
 import { evaluateAlarms } from "./operations/attendance"
 import { simulateCheckIn } from "./operations/attendance-handlers"
@@ -687,15 +688,11 @@ describe("Faz 2 mock API: puantaj ve bordro", () => {
   it("TC-2.6-06 iki tüzel kişilik, iki farklı profil: kendi dosya biçimi ve kodlaması", async () => {
     applyTestScenario("month-end-close")
     mockClock.freeze("2026-10-02T10:00:00+03:00")
-    // Personel temini hattını kapat: bu testte müşteri onayı adımı yok
-    for (const location of db.locations.findMany(
-      (item) => item.tenantId === "cok-hatli-grup"
+    // Personel temini sözleşmelerini kaldır: bu testte müşteri onayı adımı yok
+    for (const contract of db.contracts.findMany(
+      (item) => item.tenantId === "cok-hatli-grup" && item.type === "staffing"
     )) {
-      db.locations.update(location.id, {
-        serviceLines: location.serviceLines.filter(
-          (line) => line !== "staffing"
-        ),
-      })
+      db.contracts.remove(contract.id)
     }
     signIn("cok-hatli-grup", "admin")
     const profiles = await http.get(
@@ -869,7 +866,8 @@ describe("Faz 2 mock API: puantaj ve bordro", () => {
     const location = db.locations.findFirst(
       (item) => item.customerId === customerId
     )!
-    db.locations.update(location.id, { serviceLines: ["staffing"] })
+    // Faz 3: müşteri onayı personel temini sözleşmesinden gelir
+    addStaffingContract("temizlik-orta", "le-temizlik-orta-1", [location.id])
     const person = db.personnel.findFirst(
       (item) => item.tenantId === "temizlik-orta" && item.status === "active"
     )!

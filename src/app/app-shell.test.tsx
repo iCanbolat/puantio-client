@@ -20,10 +20,13 @@ describe("uygulama kabuğu", () => {
   it("TC-0.2-02 henüz geliştirilmemiş modüller faz rozetiyle pasif görünür", async () => {
     renderApp()
     await screen.findByRole("heading", { name: "Operasyon paneli" })
-    const contracts = screen.getByText("Sözleşmeler").closest("button")
-    expect(contracts).toHaveAttribute("aria-disabled", "true")
-    expect(within(contracts!).getByText("Faz 3")).toBeInTheDocument()
-    // Faz 2 modülleri artık bağlantı
+    const audits = screen.getByText("Denetimler").closest("button")
+    expect(audits).toHaveAttribute("aria-disabled", "true")
+    expect(within(audits!).getByText("Faz 4")).toBeInTheDocument()
+    // Faz 2 ve Faz 3 modülleri artık bağlantı
+    expect(
+      screen.getByRole("link", { name: /Sözleşmeler/ })
+    ).toBeInTheDocument()
     expect(
       screen.getByRole("link", { name: /Vardiya planlama/ })
     ).toBeInTheDocument()

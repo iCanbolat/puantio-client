@@ -3,6 +3,7 @@ import type { RequestHandler, WebSocketHandler } from "msw"
 import { resetDatabase, type SeedProfile } from "../db"
 import { phase0Scenarios } from "./phase0"
 import { phase2Scenarios } from "./phase2"
+import { phase3Scenarios } from "./phase3"
 import { setRealtimeBlocked } from "../realtime"
 import type { ScenarioDefinition } from "./types"
 
@@ -12,6 +13,7 @@ export { defineScenario, type ScenarioDefinition } from "./types"
 export const scenarios: readonly ScenarioDefinition[] = [
   ...phase0Scenarios,
   ...phase2Scenarios,
+  ...phase3Scenarios,
 ]
 
 export type ScenarioId = string

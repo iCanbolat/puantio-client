@@ -1,6 +1,8 @@
 import { showcaseHandlers } from "@/features/dev-showcase/mocks/handlers"
 
 import { chaosHandler } from "./chaos"
+import { contractHandlers } from "./contracts/contract-handlers"
+import { progressPaymentHandlers } from "./contracts/progress-payment-handlers"
 import { importHandlers } from "./import/handlers"
 import { masterDataHandlers } from "./master-data/handlers"
 import { attendanceHandlers } from "./operations/attendance-handlers"
@@ -27,6 +29,8 @@ export const handlers = [
   ...leaveHandlers,
   ...attendanceHandlers,
   ...timesheetHandlers,
+  ...contractHandlers,
+  ...progressPaymentHandlers,
   ...showcaseHandlers,
   ...realtimeHandlers,
 ]

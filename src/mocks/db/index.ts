@@ -16,11 +16,14 @@ import { buildTenantUsers } from "../tenancy/users"
 import { buildPayrollProfiles } from "../operations/payroll-seed"
 import { resetOperations } from "../operations/store"
 import { buildShiftTemplates } from "../operations/templates"
+import { buildContractTemplates, buildContracts } from "../contracts/seed"
 import { Collection } from "./collection"
 import type {
   MockAlarm,
   MockArea,
   MockAuditEvent,
+  MockContract,
+  MockContractTemplate,
   MockCustomer,
   MockLeave,
   MockLegalEntity,
@@ -30,6 +33,7 @@ import type {
   MockPayrollExport,
   MockPayrollProfile,
   MockPersonnel,
+  MockProgressPayment,
   MockShiftTemplate,
   MockSupportSession,
   MockTag,
@@ -68,6 +72,10 @@ export const db = {
   ),
   payrollProfiles: new Collection<MockPayrollProfile>("payrollProfiles"),
   payrollExports: new Collection<MockPayrollExport>("payrollExports"),
+  // Faz 3
+  contractTemplates: new Collection<MockContractTemplate>("contractTemplates"),
+  contracts: new Collection<MockContract>("contracts"),
+  progressPayments: new Collection<MockProgressPayment>("progressPayments"),
 }
 
 /** Kiracıya ait iş verisi koleksiyonları ("Boş veri" senaryosu bunları temizler) */
@@ -88,6 +96,9 @@ export const TENANT_DATA_COLLECTIONS = [
   "timesheetOverrides",
   "payrollProfiles",
   "payrollExports",
+  "contractTemplates",
+  "contracts",
+  "progressPayments",
 ] as const satisfies readonly (keyof typeof db)[]
 
 export type SeedProfile = "test" | "dev" | "scale"
@@ -166,6 +177,9 @@ export function seedDatabase(
     db.users.insertMany(buildTenantUsers(tenant, data, SEED_REFERENCE_DATE))
     db.shiftTemplates.insertMany(buildShiftTemplates(tenant))
     db.payrollProfiles.insertMany(buildPayrollProfiles(tenant.slug))
+    const contractTemplates = buildContractTemplates(tenant.slug)
+    db.contractTemplates.insertMany(contractTemplates)
+    db.contracts.insertMany(buildContracts(tenant, data, contractTemplates))
     db.auditEvents.insert({
       id: `aud-${tenant.slug}-1`,
       tenantId: tenant.slug,

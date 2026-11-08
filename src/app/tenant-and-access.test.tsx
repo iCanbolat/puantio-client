@@ -68,9 +68,9 @@ describe("Batch 1.0 kiracı yapılandırması", () => {
   })
 
   it("pakette olan ama henüz geliştirilmemiş modül faz bilgisini gösterir", async () => {
-    renderApp({ route: "/hakedis" })
+    renderApp({ route: "/kalite" })
     expect(
-      await screen.findByText("Bu modül Faz 3'de geliştirilecek.")
+      await screen.findByText("Bu modül Faz 4'de geliştirilecek.")
     ).toBeInTheDocument()
   })
 

@@ -13,6 +13,7 @@ import { useTerms } from "@/entities/tenant"
 import { getErrorMessage } from "@/shared/api/errors"
 import { FileDropzone } from "@/shared/components/file-dropzone"
 import { PageHeader } from "@/shared/components/page-header"
+import { StepIndicator } from "@/shared/components/step-indicator"
 import { ProgressBar } from "@/shared/components/progress-bar"
 import { useSearchParamsState } from "@/shared/hooks/use-search-params-state"
 import { csvBlob, downloadBlob, toCsv } from "@/shared/lib/download"
@@ -83,35 +84,12 @@ const pageSchema = z.object({
 
 type Step = "file" | "mapping" | "validation" | "done"
 
-function StepIndicator({ step }: { step: Step }) {
-  const steps: { id: Step; label: string }[] = [
-    { id: "file", label: "Dosya" },
-    { id: "mapping", label: "Sütun eşleştirme" },
-    { id: "validation", label: "Doğrulama" },
-    { id: "done", label: "Sonuç" },
-  ]
-  const current = steps.findIndex((item) => item.id === step)
-  return (
-    <ol className="flex flex-wrap gap-2 text-sm" aria-label="Adımlar">
-      {steps.map((item, index) => (
-        <li
-          key={item.id}
-          aria-current={index === current ? "step" : undefined}
-          className={cn(
-            "rounded-full px-3 py-1",
-            index === current
-              ? "bg-primary text-primary-foreground"
-              : index < current
-                ? "bg-muted"
-                : "text-muted-foreground"
-          )}
-        >
-          {index + 1}. {item.label}
-        </li>
-      ))}
-    </ol>
-  )
-}
+const STEPS: { id: Step; label: string }[] = [
+  { id: "file", label: "Dosya" },
+  { id: "mapping", label: "Sütun eşleştirme" },
+  { id: "validation", label: "Doğrulama" },
+  { id: "done", label: "Sonuç" },
+]
 
 export function ImportPage() {
   const terms = useTerms()
@@ -304,7 +282,7 @@ function ImportWizard({ definition }: { definition: ImportDefinition }) {
     <Card>
       <CardHeader className="gap-3">
         <CardTitle>{definition.label} içe aktarma</CardTitle>
-        <StepIndicator step={step} />
+        <StepIndicator steps={STEPS} current={step} />
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {step === "file" ? (

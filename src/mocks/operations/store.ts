@@ -23,6 +23,10 @@ export interface OperationsFlags {
   previousMonthStatus: "open" | "locked"
   /** Realtime bağlantıları kabul edilmez (WS koparma simülasyonu) */
   realtimeBlocked: boolean
+  /** Her gün 07:00 vardiyasına eksiksiz gelen personel (Faz 3 kadro senaryoları) */
+  steadyPersonnelIds: Set<string>
+  /** Geçen ay taslak hakedişi açılıp sonra puantajı düzeltilecek kiracılar (stale-progress-payment) */
+  stalePaymentTenants: Set<string>
 }
 
 export const defaultFlags = (): OperationsFlags => ({
@@ -34,6 +38,8 @@ export const defaultFlags = (): OperationsFlags => ({
   lockPreviousMonth: false,
   previousMonthStatus: "open",
   realtimeBlocked: false,
+  steadyPersonnelIds: new Set(),
+  stalePaymentTenants: new Set(),
 })
 
 export const ops = {
@@ -51,6 +57,8 @@ export const ops = {
   versions: new Map<string, number>(),
   /** Bekleyen izin talepleri üretilen kiracılar */
   pendingLeavesSeeded: new Set<string>(),
+  /** Örnek hakedişleri üretilen kiracılar (Faz 3) */
+  paymentsSeeded: new Set<string>(),
 }
 
 export function resetOperations(): void {
@@ -62,6 +70,7 @@ export function resetOperations(): void {
   ops.events.clear()
   ops.versions.clear()
   ops.pendingLeavesSeeded.clear()
+  ops.paymentsSeeded.clear()
 }
 
 export function tenantDays(tenantId: string) {
