@@ -1,4 +1,8 @@
-import { DEFAULT_LABOR_RULES, type TenantConfig } from "@/entities/tenant"
+import {
+  DEFAULT_LABOR_RULES,
+  DEFAULT_QUALITY_RULES,
+  type TenantConfig,
+} from "@/entities/tenant"
 
 /**
  * Mock kiracılar. Sektör profillerine göre kurgulanmıştır; gerçek firma adı kullanılmaz.
@@ -22,6 +26,7 @@ const baseRules = {
   alarmSlaMinutes: 15,
   escalationMinutes: 15,
   labor: DEFAULT_LABOR_RULES,
+  quality: DEFAULT_QUALITY_RULES,
   geofence: { min: 25, max: 1000, default: 100 },
 }
 

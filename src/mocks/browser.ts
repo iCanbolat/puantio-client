@@ -30,6 +30,7 @@ import {
   setRealtimeBlocked,
 } from "./realtime"
 import { DEFAULT_SCENARIO_ID, applyScenario, findScenario } from "./scenarios"
+import { simulateAudit, simulateFeedback } from "./quality/simulate"
 
 export const worker = setupWorker(...handlers)
 
@@ -97,6 +98,14 @@ export const mockController = {
   simulateCheckIn(): string | null {
     return simulateCheckIn(store().tenantSlug || DEFAULT_MOCK_TENANT)
   },
+  /** Faz 4: sabit WC alanından QR bildirimi (iş emri açar veya birleştirir) */
+  simulateFeedback(): string | null {
+    return simulateFeedback(store().tenantSlug || DEFAULT_MOCK_TENANT)
+  },
+  /** Faz 4: saha uygulamasından kritik bulgulu denetim sonucu */
+  simulateAudit(): string | null {
+    return simulateAudit(store().tenantSlug || DEFAULT_MOCK_TENANT)
+  },
   /** Canlı bağlantıyı kopar / aç; yeni durumu döner */
   toggleRealtime(): boolean {
     const next = !isRealtimeBlocked()
@@ -161,9 +170,13 @@ export function mockAppOptions(): Required<AppContextOptions> {
           ? identityFor(tenant.slug, initialKey)
           : null,
         resolveIdentity: ({ loginHint }) => {
+          // Girişte yazılan e-posta bir mock kullanıcıya aitse o kullanıcıyla açılır
+          // (sayfa yenilenmeden kullanıcı değiştirme; bellek içi mock veri korunur)
+          const byEmail = identityForEmail(loginHint)
+          if (byEmail) return byEmail
           const selected = store().mockUserKey
           if (selected) return identityFor(tenant.slug, selected)
-          return identityForEmail(loginHint) ?? defaultIdentity(tenant.slug)
+          return defaultIdentity(tenant.slug)
         },
       }),
   }

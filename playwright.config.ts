@@ -12,6 +12,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
+  // Paket ve route ağacı büyüdükçe paralel yük altında dev sunucusunun lazy chunk derlemesi
+  // 5 sn'yi aşabiliyor (Faz 4'te verify'da görüldü; testler tek başına 1–2 sn'de geçiyor)
+  expect: { timeout: 10_000 },
   reporter: isCI
     ? [["github"], ["html", { open: "never" }]]
     : [["list"], ["html", { open: "never" }]],

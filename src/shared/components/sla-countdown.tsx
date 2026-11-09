@@ -9,7 +9,8 @@ import { cn } from "@/shared/lib/utils"
 const stateClasses: Record<SlaState, string> = {
   ok: "bg-muted text-foreground",
   warning: "bg-amber-500/15 text-amber-800 dark:text-amber-400",
-  breached: "bg-destructive/15 text-destructive",
+  // text-destructive açık zeminde AA (4.5:1) altında kalıyor (StatusBadge ile aynı düzeltme)
+  breached: "bg-destructive/10 text-red-700 dark:text-red-400",
 }
 
 /**

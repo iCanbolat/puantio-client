@@ -87,6 +87,18 @@ export const PERMISSION_GROUPS = [
     ],
   },
   {
+    id: "portal",
+    label: "Müşteri portalı",
+    permissions: [
+      { id: "work_order:request", label: "Portaldan iş emri talebi aç" },
+      { id: "portal:reports", label: "Portal raporlarını görüntüle" },
+      {
+        id: "portal:report_settings",
+        label: "Rapor gönderim ayarlarını düzenle",
+      },
+    ],
+  },
+  {
     id: "inventory",
     label: "Stok ve zimmet",
     permissions: [

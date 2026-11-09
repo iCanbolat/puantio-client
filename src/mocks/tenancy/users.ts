@@ -19,6 +19,8 @@ export const MOCK_USER_KEYS = [
   "depo",
   "isg",
   "musteri",
+  "musteri-kullanici",
+  "musteri-b",
 ] as const
 export type MockUserKey = (typeof MOCK_USER_KEYS)[number]
 
@@ -59,6 +61,16 @@ const FIXED: Record<
     title: "Müşteri İdari İşler",
     roles: ["customer_admin"],
   },
+  "musteri-kullanici": {
+    name: "Derya Kılıç",
+    title: "Müşteri Tesis Sorumlusu",
+    roles: ["customer_user"],
+  },
+  "musteri-b": {
+    name: "Onur Erdem",
+    title: "Müşteri İdari İşler",
+    roles: ["customer_admin"],
+  },
   davetli: {
     name: "Gizem Polat",
     title: "Bölge Sorumlusu",
@@ -91,6 +103,8 @@ const EMAIL_KEYS: Record<string, string> = {
   depo: "emre.koc",
   isg: "selin.aydin",
   musteri: "kerem.ozturk",
+  "musteri-kullanici": "derya.kilic",
+  "musteri-b": "onur.erdem",
   davetli: "gizem.polat",
   pasif: "oguz.yildiz",
 }
@@ -126,12 +140,17 @@ export function buildTenantUsers(
           ? { kind: "org_units" as const, ids: root ? [root.id] : [] }
           : key === "supervizor" || key === "pasif"
             ? { kind: "locations" as const, ids: supervised }
-            : key === "musteri"
+            : key === "musteri" || key === "musteri-kullanici"
               ? {
                   kind: "customers" as const,
                   ids: data.customers[0] ? [data.customers[0].id] : [],
                 }
-              : { kind: "all" as const }
+              : key === "musteri-b"
+                ? {
+                    kind: "customers" as const,
+                    ids: data.customers[1] ? [data.customers[1].id] : [],
+                  }
+                : { kind: "all" as const }
       return {
         id: mockUserId(tenant.slug, key),
         tenantId: tenant.slug,
@@ -153,7 +172,13 @@ export function buildTenantUsers(
   )
 
   const extraRoles = Object.keys(SYSTEM_ROLE_TEMPLATES).filter(
-    (key) => !["super_admin", "tenant_admin", "customer_admin"].includes(key)
+    (key) =>
+      ![
+        "super_admin",
+        "tenant_admin",
+        "customer_admin",
+        "customer_user",
+      ].includes(key)
   )
   for (let index = 0; index < 6; index += 1) {
     const first = faker.person.firstName()

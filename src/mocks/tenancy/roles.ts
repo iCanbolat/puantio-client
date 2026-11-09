@@ -187,6 +187,22 @@ export const SYSTEM_ROLE_TEMPLATES: Record<
       "progress_payment:read",
       "progress_payment:approve_customer",
       "timesheet:approve_customer",
+      "work_order:request",
+      "portal:reports",
+      "portal:report_settings",
+    ],
+  },
+  customer_user: {
+    name: "Müşteri kullanıcısı",
+    description:
+      "Müşteri portalı: özet, iş emirleri, talep ve raporlar (onay yetkisi yok)",
+    permissions: [
+      "location:read",
+      "quality:read",
+      "work_order:read",
+      "work_order:request",
+      "contract:read",
+      "portal:reports",
     ],
   },
 }

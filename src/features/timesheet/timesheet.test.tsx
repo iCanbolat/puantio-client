@@ -41,7 +41,9 @@ describe("Batch 2.5 aylık puantaj", () => {
       within(grid).getAllByRole("button", { name: /Hafta tatili/ }).length
     ).toBeGreaterThan(3)
     await expectNoA11yViolations(container)
-  })
+    // Dosyanın ilk testi lazy sayfaları soğuk derler; tam kapsam + paralel yük altında
+    // 20 sn varsayılanını aşabiliyor (tek başına ~6 sn)
+  }, 45_000)
 
   it("TC-2.5-03 period-locked: grid salt okunur, kilit uyarısı", async () => {
     applyTestScenario("period-locked")

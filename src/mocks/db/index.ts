@@ -17,14 +17,20 @@ import { buildPayrollProfiles } from "../operations/payroll-seed"
 import { resetOperations } from "../operations/store"
 import { buildShiftTemplates } from "../operations/templates"
 import { buildContractTemplates, buildContracts } from "../contracts/seed"
+import { seedQuality } from "../quality/seed"
 import { Collection } from "./collection"
 import type {
   MockAlarm,
   MockArea,
+  MockAudit,
   MockAuditEvent,
+  MockAuditPlan,
+  MockAuditTemplate,
   MockContract,
   MockContractTemplate,
   MockCustomer,
+  MockFeedbackSubmission,
+  MockIssueCatalog,
   MockLeave,
   MockLegalEntity,
   MockLocation,
@@ -34,12 +40,15 @@ import type {
   MockPayrollProfile,
   MockPersonnel,
   MockProgressPayment,
+  MockReportSubscription,
   MockShiftTemplate,
   MockSupportSession,
   MockTag,
   MockTimesheetOverride,
   MockTimesheetPeriod,
+  MockUpload,
   MockUser,
+  MockWorkOrder,
 } from "./types"
 
 export { Collection } from "./collection"
@@ -76,6 +85,20 @@ export const db = {
   contractTemplates: new Collection<MockContractTemplate>("contractTemplates"),
   contracts: new Collection<MockContract>("contracts"),
   progressPayments: new Collection<MockProgressPayment>("progressPayments"),
+  // Faz 4. Denetim sonuçları ve örnek iş emirleri ilk ihtiyaç anında üretilir
+  // (bkz. mocks/quality/seed.ts); şablon, plan ve katalog burada tohumlanır.
+  issueCatalogs: new Collection<MockIssueCatalog>("issueCatalogs"),
+  auditTemplates: new Collection<MockAuditTemplate>("auditTemplates"),
+  auditPlans: new Collection<MockAuditPlan>("auditPlans"),
+  audits: new Collection<MockAudit>("audits"),
+  workOrders: new Collection<MockWorkOrder>("workOrders"),
+  feedbackSubmissions: new Collection<MockFeedbackSubmission>(
+    "feedbackSubmissions"
+  ),
+  reportSubscriptions: new Collection<MockReportSubscription>(
+    "reportSubscriptions"
+  ),
+  uploads: new Collection<MockUpload>("uploads"),
 }
 
 /** Kiracıya ait iş verisi koleksiyonları ("Boş veri" senaryosu bunları temizler) */
@@ -99,6 +122,14 @@ export const TENANT_DATA_COLLECTIONS = [
   "contractTemplates",
   "contracts",
   "progressPayments",
+  "issueCatalogs",
+  "auditTemplates",
+  "auditPlans",
+  "audits",
+  "workOrders",
+  "feedbackSubmissions",
+  "reportSubscriptions",
+  "uploads",
 ] as const satisfies readonly (keyof typeof db)[]
 
 export type SeedProfile = "test" | "dev" | "scale"
@@ -180,6 +211,7 @@ export function seedDatabase(
     const contractTemplates = buildContractTemplates(tenant.slug)
     db.contractTemplates.insertMany(contractTemplates)
     db.contracts.insertMany(buildContracts(tenant, data, contractTemplates))
+    seedQuality(tenant, data)
     db.auditEvents.insert({
       id: `aud-${tenant.slug}-1`,
       tenantId: tenant.slug,

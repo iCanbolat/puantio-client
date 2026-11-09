@@ -392,6 +392,36 @@ export function MockDevtools() {
                 Giriş gönder (QR)
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const result = mockController.simulateFeedback()
+                  setFieldMessage(
+                    result
+                      ? `QR bildirimi: ${result}`
+                      : "Bu kiracıda bildirim alanı yok."
+                  )
+                  void queryClient.invalidateQueries()
+                }}
+              >
+                QR bildirimi gönder
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const result = mockController.simulateAudit()
+                  setFieldMessage(
+                    result
+                      ? `Denetim alındı: ${result}`
+                      : "Bu kiracıda denetim planı yok."
+                  )
+                  void queryClient.invalidateQueries()
+                }}
+              >
+                Denetim gönder
+              </Button>
+              <Button
                 variant={realtimeBlocked ? "destructive" : "outline"}
                 size="sm"
                 aria-pressed={realtimeBlocked}

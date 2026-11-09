@@ -81,17 +81,20 @@ describe("Batch 1.4 müşteriler", () => {
     })
   })
 
-  it("müşteri kullanıcısı yalnızca kendi müşterisini görür", async () => {
+  it("müşteri kullanıcısı firma panelini değil müşteri portalını kullanır (Faz 4)", async () => {
+    // Müşteri kapsamının API düzeyinde süzülmesi: mocks/faz4-api.test.ts (TC-4.5-01)
     db.roles.update("rol-temizlik-orta-customer_admin", {
       permissions: [
         ...db.roles.findById("rol-temizlik-orta-customer_admin")!.permissions,
         "customer:read",
       ],
     })
-    renderApp({ user: "musteri", route: "/musteriler" })
-    const table = await screen.findByRole("table", { name: "Müşteriler" })
+    const { router } = renderApp({ user: "musteri", route: "/musteriler" })
     await waitFor(() => {
-      expect(within(table).getAllByRole("row")).toHaveLength(2)
+      expect(router.state.location.pathname).toBe("/portal")
     })
+    expect(
+      screen.queryByRole("table", { name: "Müşteriler" })
+    ).not.toBeInTheDocument()
   })
 })

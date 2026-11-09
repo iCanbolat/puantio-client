@@ -3,10 +3,13 @@ import {
   BanknoteIcon,
   BoxesIcon,
   Building2Icon,
+  CalendarCheckIcon,
   CalendarClockIcon,
   ClipboardCheckIcon,
+  ClipboardListIcon,
   FileCogIcon,
   FileSignatureIcon,
+  FileBarChartIcon,
   FileSpreadsheetIcon,
   FlaskConicalIcon,
   HardHatIcon,
@@ -16,10 +19,13 @@ import {
   ListChecksIcon,
   MapPinIcon,
   NetworkIcon,
+  MessageSquarePlusIcon,
   PlaneIcon,
+  QrCodeIcon,
   RadioTowerIcon,
   ReceiptTextIcon,
   ScrollTextIcon,
+  SendIcon,
   SettingsIcon,
   ShieldIcon,
   SirenIcon,
@@ -206,6 +212,15 @@ export function buildNavigation(options: {
         {
           label: "Denetimler",
           icon: BadgeCheckIcon,
+          to: paths.quality.audits(),
+          phase: 4,
+          permission: "quality:read",
+          module: "quality",
+        },
+        {
+          label: "Denetim planı",
+          icon: CalendarCheckIcon,
+          to: paths.quality.plan(),
           phase: 4,
           permission: "quality:read",
           module: "quality",
@@ -213,6 +228,7 @@ export function buildNavigation(options: {
         {
           label: "İş emirleri",
           icon: WrenchIcon,
+          to: paths.workOrders.list(),
           phase: 4,
           permission: "work_order:read",
           module: "quality",
@@ -314,6 +330,22 @@ export function buildNavigation(options: {
           module: "contracts",
         },
         {
+          label: "Denetim şablonları",
+          icon: ClipboardListIcon,
+          to: paths.quality.templates(),
+          phase: 4,
+          permission: "quality:read",
+          module: "quality",
+        },
+        {
+          label: "Bildirim kataloğu",
+          icon: QrCodeIcon,
+          to: paths.quality.feedbackCatalog(),
+          phase: 4,
+          permission: "quality:read",
+          module: "quality",
+        },
+        {
           label: "Denetim kayıtları",
           icon: ScrollTextIcon,
           to: paths.settings.audit(),
@@ -354,6 +386,83 @@ export function filterNavigation(
       ),
     }))
     .filter((section) => section.items.length > 0)
+}
+
+/** Müşteri portalı menüsü (yetki ve modüle göre süzülür) */
+export function buildPortalNavigation(): NavSection[] {
+  return [
+    {
+      label: "Portal",
+      items: [
+        {
+          label: "Özet",
+          icon: LayoutDashboardIcon,
+          to: paths.portal.home(),
+          phase: 4,
+          permission: "portal:reports",
+          module: "customer_portal",
+        },
+        {
+          label: "İş emirleri",
+          icon: WrenchIcon,
+          to: paths.portal.workOrders(),
+          phase: 4,
+          permission: "work_order:read",
+          module: "customer_portal",
+        },
+        {
+          label: "Talep aç",
+          icon: MessageSquarePlusIcon,
+          to: paths.portal.request(),
+          phase: 4,
+          permission: "work_order:request",
+          module: "customer_portal",
+        },
+        {
+          label: "Raporlar",
+          icon: FileBarChartIcon,
+          to: paths.portal.reports(),
+          phase: 4,
+          permission: "portal:reports",
+          module: "customer_portal",
+        },
+      ],
+    },
+    {
+      label: "Onaylar",
+      items: [
+        {
+          label: "Puantaj onayları",
+          icon: ClipboardCheckIcon,
+          to: paths.portal.timesheet(),
+          phase: 2,
+          permission: "timesheet:approve_customer",
+          module: "timesheet",
+        },
+        {
+          label: "Hakedişler",
+          icon: ReceiptTextIcon,
+          to: paths.portal.progressPayments(),
+          phase: 3,
+          permission: "progress_payment:approve_customer",
+          module: "contracts",
+        },
+      ],
+    },
+    {
+      label: "Ayarlar",
+      items: [
+        {
+          label: "Rapor gönderimi",
+          icon: SendIcon,
+          to: paths.portal.reportSettings(),
+          phase: 4,
+          permission: "portal:report_settings",
+          module: "customer_portal",
+        },
+      ],
+    },
+  ]
 }
 
 export function buildPlatformNavigation(): NavSection[] {

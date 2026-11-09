@@ -9,6 +9,8 @@ export default defineConfig({
   build: {
     // Excel içe aktarma sayfası SheetJS içerir (~166 KB gzip); yalnızca /ice-aktar açılınca yüklenir
     chunkSizeWarningLimit: 600,
+    // Paket boyutu denetimi (scripts/check-bundle-size.mjs) için chunk grafiği
+    manifest: true,
   },
   server: {
     // Soğuk başlatılan sunucuda (E2E) lazy sayfaların ilk derlemesi zaman aşımına

@@ -20,6 +20,7 @@ import { mintMockToken } from "@/mocks/auth/token"
 import { configureHttp } from "@/shared/api/http"
 import { createQueryClient } from "@/shared/api/query-client"
 import { createRealtimeClient, resolveRealtimeUrl } from "@/shared/api/realtime"
+import { RealtimeConnection } from "@/shared/api/realtime-react"
 import { storageKey } from "@/shared/config/brand"
 import { env } from "@/shared/config/env"
 
@@ -178,10 +179,23 @@ export function renderWithProviders(
       })
     : null
   configureHttp({ getAccessToken: () => token })
-  return renderInProviders([{ path: "*", element: ui }], {
-    ...options,
-    queryClient,
-    auth,
-    getAuthAdapter,
-  })
+  return renderInProviders(
+    [
+      {
+        path: "*",
+        element: (
+          <>
+            <RealtimeConnection />
+            {ui}
+          </>
+        ),
+      },
+    ],
+    {
+      ...options,
+      queryClient,
+      auth,
+      getAuthAdapter,
+    }
+  )
 }

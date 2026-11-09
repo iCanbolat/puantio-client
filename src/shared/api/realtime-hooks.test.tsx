@@ -17,7 +17,7 @@ import {
   useRealtimeEvent,
   useRealtimeStatus,
 } from "./realtime-hooks"
-import { RealtimeProvider } from "./realtime-react"
+import { RealtimeConnection, RealtimeProvider } from "./realtime-react"
 
 const checkInEvent = defineRealtimeEvent(
   "attendance.checked_in",
@@ -27,7 +27,12 @@ const checkInEvent = defineRealtimeEvent(
 let client: RealtimeClient
 
 function wrapper({ children }: { children: ReactNode }) {
-  return <RealtimeProvider client={client}>{children}</RealtimeProvider>
+  return (
+    <RealtimeProvider client={client}>
+      <RealtimeConnection />
+      {children}
+    </RealtimeProvider>
+  )
 }
 
 afterEach(() => {

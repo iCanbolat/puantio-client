@@ -56,9 +56,21 @@ export const routePatterns = {
   printHeadcount: "/baski/kadro-raporu",
   printProgressPayment: "/baski/hakedis/:paymentId",
   portalProgressPayments: "/portal/hakedisler",
+  quality: "/kalite",
+  qualityAuditDetail: "/kalite/denetimler/:auditId",
+  qualityTemplates: "/kalite/sablonlar",
+  qualityTemplateDetail: "/kalite/sablonlar/:templateId",
+  qualityPlan: "/kalite/plan",
+  settingsFeedbackCatalog: "/ayarlar/bildirim-katalogu",
+  workOrders: "/is-emirleri",
+  workOrderDetail: "/is-emirleri/:workOrderId",
+  portalWorkOrders: "/portal/is-emirleri",
+  portalWorkOrderDetail: "/portal/is-emirleri/:workOrderId",
+  portalRequest: "/portal/talep",
+  portalReports: "/portal/raporlar",
+  portalReportSettings: "/portal/rapor-gonderimi",
+  printPortalReport: "/baski/portal-rapor/:month",
   upcoming: {
-    quality: "/kalite",
-    workOrders: "/is-emirleri",
     inventory: "/stok",
     shipments: "/sevkiyat",
     ohs: "/isg",
@@ -97,7 +109,35 @@ export const paths = {
   devShowcase: () => routePatterns.devShowcase,
   portal: {
     home: () => routePatterns.portalHome,
+    timesheet: () => routePatterns.portalTimesheet,
     progressPayments: () => routePatterns.portalProgressPayments,
+    workOrders: (query: { state?: "open" | "overdue" } = {}) =>
+      withQuery(routePatterns.portalWorkOrders, { state: query.state }),
+    workOrder: (id: string) => `/portal/is-emirleri/${enc(id)}`,
+    request: () => routePatterns.portalRequest,
+    reports: () => routePatterns.portalReports,
+    reportSettings: () => routePatterns.portalReportSettings,
+  },
+  quality: {
+    audits: (query: { locationId?: string; templateId?: string } = {}) =>
+      withQuery(routePatterns.quality, {
+        locationId: query.locationId,
+        templateId: query.templateId,
+      }),
+    audit: (id: string) => `/kalite/denetimler/${enc(id)}`,
+    templates: () => routePatterns.qualityTemplates,
+    template: (id: string) => `/kalite/sablonlar/${enc(id)}`,
+    plan: (month?: string) =>
+      withQuery(routePatterns.qualityPlan, { ay: month }),
+    feedbackCatalog: () => routePatterns.settingsFeedbackCatalog,
+  },
+  workOrders: {
+    list: (query: { view?: "liste" | "kanban"; status?: string } = {}) =>
+      withQuery(routePatterns.workOrders, {
+        gorunum: query.view,
+        status: query.status,
+      }),
+    detail: (id: string) => `/is-emirleri/${enc(id)}`,
   },
   publicFeedback: (token: string) => `/q/${enc(token)}`,
   personnel: {
@@ -176,6 +216,7 @@ export const paths = {
         bolge: query.orgUnitId,
       }),
     progressPayment: (id: string) => `/baski/hakedis/${enc(id)}`,
+    portalReport: (month: string) => `/baski/portal-rapor/${enc(month)}`,
   },
   customers: {
     list: () => routePatterns.customerList,

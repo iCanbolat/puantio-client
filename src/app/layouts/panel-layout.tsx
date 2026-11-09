@@ -1,11 +1,13 @@
 import { Suspense, useMemo } from "react"
-import { Outlet } from "react-router"
+import { Navigate, Outlet } from "react-router"
 
 import { AttendanceRealtimeBridge } from "@/features/attendance"
+import { WorkOrderRealtimeBridge } from "@/features/work-orders"
 import { SessionEffects, SupportBanner } from "@/features/auth"
 import { can, useSession } from "@/entities/session"
 import { hasModule, useTenant, useTerms } from "@/entities/tenant"
 import { PageSkeleton } from "@/shared/components/page-skeleton"
+import { paths } from "@/shared/config/paths"
 import { useUiStore } from "@/shared/stores/ui-store"
 import { SidebarInset, SidebarProvider } from "@/shared/ui/sidebar"
 
@@ -88,10 +90,16 @@ export function PanelLayout({ showDevTools }: { showDevTools: boolean }) {
   )
   const listensAttendance =
     hasModule(tenant, "attendance") && can(me, "attendance:read")
+  const listensWorkOrders =
+    hasModule(tenant, "quality") && can(me, "work_order:read")
+  // Müşteri kullanıcıları firma iç panelini değil müşteri portalını kullanır
+  if (me.scope.kind === "customers")
+    return <Navigate to={paths.portal.home()} replace />
   return (
     <>
       <ShellFrame sections={sections} header={<TenantHeader />} />
       {listensAttendance ? <AttendanceRealtimeBridge /> : null}
+      {listensWorkOrders ? <WorkOrderRealtimeBridge /> : null}
     </>
   )
 }

@@ -398,3 +398,156 @@ export interface MockProgressPayment extends Tenanted {
   history: { at: string; actor: string; action: string; note: string | null }[]
   updatedAt: string
 }
+
+/* ───────────────────────────── Faz 4: Kalite ve iş emirleri ───────────────────────────── */
+
+export interface MockIssueCatalogEntry {
+  code: string
+  label: string
+  serviceLine: ServiceLine
+  areaTypes: AreaType[]
+  priority: "urgent" | "high" | "normal" | "low"
+  isActive: boolean
+}
+
+/** Kiracının sorun kataloğu (kiracı başına tek kayıt, `id` = kiracı) */
+export interface MockIssueCatalog extends Tenanted {
+  items: MockIssueCatalogEntry[]
+  updatedAt: string
+}
+
+export interface MockAuditItem {
+  id: string
+  text: string
+  type: "yes_no" | "score_1_5" | "photo_required" | "note"
+  weight: number
+  critical: boolean
+  workOrderPriority: "urgent" | "high" | "normal" | "low"
+}
+
+export interface MockAuditSection {
+  id: string
+  title: string
+  items: MockAuditItem[]
+}
+
+export interface MockAuditTemplateVersion {
+  number: number
+  publishedAt: string
+  publishedBy: string
+  sections: MockAuditSection[]
+}
+
+export interface MockAuditTemplate extends Tenanted {
+  name: string
+  description: string | null
+  serviceLine: ServiceLine
+  sectors: CustomerSector[]
+  builtIn: boolean
+  isActive: boolean
+  /** Son sürüm en sonda; geçmiş denetimler kendi sürüm numarasına bağlıdır */
+  versions: MockAuditTemplateVersion[]
+  updatedAt: string
+}
+
+export interface MockAuditPlan extends Tenanted {
+  auditorId: string
+  locationId: string
+  templateId: string
+  frequency: "weekly" | "biweekly" | "monthly"
+  startDate: string
+  isActive: boolean
+}
+
+export interface MockAuditAnswer {
+  itemId: string
+  passed: boolean | null
+  score: number | null
+  note: string | null
+  photoCount: number
+}
+
+export interface MockAudit extends Tenanted {
+  number: string
+  templateId: string
+  templateVersion: number
+  locationId: string
+  auditorId: string | null
+  auditorName: string
+  performedAt: string
+  answers: MockAuditAnswer[]
+  generalNote: string | null
+  score: number
+  passed: boolean
+  criticalFailures: string[]
+}
+
+export interface MockWorkOrderReport {
+  id: string
+  receivedAt: string
+  channel: "qr" | "portal" | "audit" | "panel"
+  issueLabel: string
+  note: string | null
+  photoId: string | null
+}
+
+export interface MockWorkOrder extends Tenanted {
+  number: string
+  title: string
+  description: string | null
+  source: "qr_feedback" | "audit_critical" | "manual" | "customer_request"
+  status:
+    "new" | "assigned" | "in_progress" | "completed" | "verified" | "cancelled"
+  priority: "urgent" | "high" | "normal" | "low"
+  categoryCode: string | null
+  serviceLine: ServiceLine
+  locationId: string
+  areaId: string | null
+  assigneeId: string | null
+  createdAt: string
+  dueAt: string
+  completedAt: string | null
+  verifiedAt: string | null
+  /** Birleştirme penceresi için son bildirim zamanı */
+  lastReportAt: string
+  reports: MockWorkOrderReport[]
+  history: {
+    at: string
+    actorName: string
+    action: string
+    note: string | null
+  }[]
+  completionNote: string | null
+  completionPhotoId: string | null
+  cancelReason: string | null
+  auditId: string | null
+  auditItemId: string | null
+  /** Müşteri talebini açan portal kullanıcısı */
+  requestedBy: string | null
+}
+
+/** Public QR gönderimleri: idempotency (istek kimliği) ve cihaz bekleme süresi */
+export interface MockFeedbackSubmission extends Tenanted {
+  token: string
+  deviceId: string
+  receivedAt: string
+  workOrderId: string
+  merged: boolean
+}
+
+export interface MockReportSubscription extends Tenanted {
+  customerId: string
+  recipients: string[]
+  frequency: "off" | "weekly" | "monthly"
+  includeSections: ("sla" | "audits" | "work_orders" | "headcount")[]
+  updatedAt: string
+  updatedBy: string
+}
+
+/** Yüklenen dosyalar (iş emri tamamlama ve QR bildirim fotoğrafları) */
+export interface MockUpload extends Tenanted {
+  name: string
+  contentType: string
+  size: number
+  createdAt: string
+}

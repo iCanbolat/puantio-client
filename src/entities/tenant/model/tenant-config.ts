@@ -181,6 +181,34 @@ export const laborRulesSchema = z.object({
 })
 export type LaborRules = z.infer<typeof laborRulesSchema>
 
+/**
+ * Kalite ve iş emri varsayılanları (Faz 4). Gerçek değerler iş birimiyle netleşince
+ * yalnızca kiracı ayarı değişir.
+ */
+export const DEFAULT_QUALITY_RULES = {
+  /** Aynı alan + aynı sorun için açık iş emri bu pencere içindeyse yeni bildirim ona eklenir */
+  feedbackMergeMinutes: 30,
+  /** Aynı cihazdan aynı alana tekrar bildirim için bekleme süresi */
+  feedbackCooldownMinutes: 2,
+  /** Öncelik başına çözüm SLA'sı (dakika) */
+  slaMinutes: { urgent: 60, high: 240, normal: 1440, low: 4320 },
+  /** Denetim puanı bu eşiğin altındaysa "Başarısız" */
+  auditPassScore: 80,
+}
+
+export const qualityRulesSchema = z.object({
+  feedbackMergeMinutes: z.number().int().min(0).max(1440),
+  feedbackCooldownMinutes: z.number().int().min(0).max(120),
+  slaMinutes: z.object({
+    urgent: z.number().int().min(5),
+    high: z.number().int().min(5),
+    normal: z.number().int().min(5),
+    low: z.number().int().min(5),
+  }),
+  auditPassScore: z.number().int().min(0).max(100),
+})
+export type QualityRules = z.infer<typeof qualityRulesSchema>
+
 export const tenantRulesSchema = z
   .object({
     idleTimeoutMinutes: z.number().int().min(5).max(240),
@@ -190,6 +218,7 @@ export const tenantRulesSchema = z
     escalationMinutes: z.number().int().min(5).max(240).default(15),
     /** 4857 sayılı İş Kanunu varsayılanları; kural motoru uyarı üretir, kesin karar backend'de */
     labor: laborRulesSchema.default(DEFAULT_LABOR_RULES),
+    quality: qualityRulesSchema.default(DEFAULT_QUALITY_RULES),
     geofence: z.object({
       min: z.number().int().min(10),
       max: z.number().int().max(5000),

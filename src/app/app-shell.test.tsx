@@ -20,10 +20,14 @@ describe("uygulama kabuğu", () => {
   it("TC-0.2-02 henüz geliştirilmemiş modüller faz rozetiyle pasif görünür", async () => {
     renderApp()
     await screen.findByRole("heading", { name: "Operasyon paneli" })
-    const audits = screen.getByText("Denetimler").closest("button")
-    expect(audits).toHaveAttribute("aria-disabled", "true")
-    expect(within(audits!).getByText("Faz 4")).toBeInTheDocument()
-    // Faz 2 ve Faz 3 modülleri artık bağlantı
+    const stock = screen.getByText("Stok ve zimmet").closest("button")
+    expect(stock).toHaveAttribute("aria-disabled", "true")
+    expect(within(stock!).getByText("Faz 5")).toBeInTheDocument()
+    // Faz 2, 3 ve 4 modülleri artık bağlantı
+    expect(screen.getByRole("link", { name: /Denetimler/ })).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: /İş emirleri/ })
+    ).toBeInTheDocument()
     expect(
       screen.getByRole("link", { name: /Sözleşmeler/ })
     ).toBeInTheDocument()
@@ -74,15 +78,16 @@ describe("uygulama kabuğu", () => {
   })
 
   it("TC-0.2-08 müşteri portalı ve public QR kabukları", async () => {
-    const portal = renderApp({ route: "/portal" })
-    expect(
-      await screen.findByText("Puantio Müşteri Portalı")
-    ).toBeInTheDocument()
+    const portal = renderApp({ route: "/portal", user: "musteri" })
+    expect(await screen.findByText("Müşteri portalı")).toBeInTheDocument()
     expect(screen.queryByText("Saha operasyonu")).not.toBeInTheDocument()
     portal.unmount()
 
-    renderApp({ route: "/q/ALAN-42" })
-    expect(await screen.findByText(/Alan kodu: ALAN-42/)).toBeInTheDocument()
+    // Faz 4: public QR sayfası kiracı kökünün dışında; bilinmeyen token anlaşılır hata verir
+    renderApp({ route: "/q/ALAN-42", user: null })
+    expect(
+      await screen.findByRole("heading", { name: "QR kod tanınmadı" })
+    ).toBeInTheDocument()
   })
 
   it("TC-0.2-09 ana sayfa erişilebilirlik denetiminden geçer", async () => {

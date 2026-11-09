@@ -10,6 +10,7 @@ import {
 import { attendanceRoutes } from "@/features/attendance"
 import { contractRoutes } from "@/features/contracts"
 import { customerRoutes } from "@/features/customer-management"
+import { customerPortalRoutes } from "@/features/customer-portal"
 import { devShowcaseRoute } from "@/features/dev-showcase"
 import { locationRoutes } from "@/features/location-management"
 import { leaveRoutes } from "@/features/leave"
@@ -18,6 +19,8 @@ import { organizationRoutes } from "@/features/organization"
 import { payrollRoutes } from "@/features/payroll-export"
 import { personnelRoutes } from "@/features/personnel-management"
 import { platformRoutes } from "@/features/platform-admin"
+import { publicFeedbackRoute } from "@/features/public-feedback"
+import { qualityRoutes } from "@/features/quality-audit"
 import {
   CustomerProgressPayments,
   progressPaymentRoutes,
@@ -29,6 +32,7 @@ import {
   timesheetRoutes,
 } from "@/features/timesheet"
 import { usersRolesRoutes } from "@/features/users-roles"
+import { workOrderRoutes } from "@/features/work-orders"
 import { PageSkeleton } from "@/shared/components/page-skeleton"
 import { scopeUiStoreToTenant } from "@/shared/stores/ui-store"
 
@@ -40,10 +44,6 @@ import { PrintLayout } from "../layouts/print-layout"
 import { PublicLayout } from "../layouts/public-layout"
 import { RootLayout } from "../layouts/root-layout"
 import { HomePage } from "../routes/home-page"
-import {
-  PortalHomePlaceholder,
-  PublicFeedbackPlaceholder,
-} from "../routes/placeholder-pages"
 import { RootError } from "../routes/root-error"
 import { RouteError } from "../routes/route-error"
 import {
@@ -71,18 +71,6 @@ const UPCOMING: {
   phase: string
   handle: RouteHandle
 }[] = [
-  {
-    path: routePatterns.upcoming.quality,
-    title: "Kalite denetimleri",
-    phase: "4",
-    handle: { permission: "quality:read", module: "quality" },
-  },
-  {
-    path: routePatterns.upcoming.workOrders,
-    title: "İş emirleri",
-    phase: "4",
-    handle: { permission: "work_order:read", module: "quality" },
-  },
   {
     path: routePatterns.upcoming.inventory,
     title: "Stok ve zimmet",
@@ -133,6 +121,9 @@ export function createRoutes(context: RouteContext): RouteObject[] {
   const payroll = payrollRoutes()
   const contracts = contractRoutes(queryClient)
   const payments = progressPaymentRoutes(queryClient)
+  const quality = qualityRoutes(queryClient)
+  const workOrders = workOrderRoutes(queryClient)
+  const portal = customerPortalRoutes(queryClient)
 
   const panelChildren: RouteObject[] = [
     {
@@ -344,6 +335,64 @@ export function createRoutes(context: RouteContext): RouteObject[] {
       ...contracts.templates,
     },
     {
+      path: routePatterns.quality,
+      handle: handle({
+        crumb: "Kalite denetimleri",
+        permission: "quality:read",
+        module: "quality",
+      }),
+      children: [
+        { index: true, ...quality.audits },
+        {
+          path: routePatterns.qualityAuditDetail,
+          handle: handle({ crumb: "Denetim" }),
+          ...quality.audit,
+        },
+        {
+          path: routePatterns.qualityTemplates,
+          handle: handle({ crumb: "Şablonlar" }),
+          children: [
+            { index: true, ...quality.templates },
+            {
+              path: routePatterns.qualityTemplateDetail,
+              handle: handle({ crumb: "Şablon" }),
+              ...quality.template,
+            },
+          ],
+        },
+        {
+          path: routePatterns.qualityPlan,
+          handle: handle({ crumb: "Denetim planı" }),
+          ...quality.plan,
+        },
+      ],
+    },
+    {
+      path: routePatterns.workOrders,
+      handle: handle({
+        crumb: "İş emirleri",
+        permission: "work_order:read",
+        module: "quality",
+      }),
+      children: [
+        { index: true, ...workOrders.list },
+        {
+          path: routePatterns.workOrderDetail,
+          handle: handle({ crumb: "İş emri" }),
+          ...workOrders.detail,
+        },
+      ],
+    },
+    {
+      path: routePatterns.settingsFeedbackCatalog,
+      handle: handle({
+        crumb: "Bildirim kataloğu",
+        permission: "quality:read",
+        module: "quality",
+      }),
+      ...workOrders.catalog,
+    },
+    {
       path: routePatterns.import,
       handle: handle({
         crumb: "Excel'den içe aktar",
@@ -472,6 +521,14 @@ export function createRoutes(context: RouteContext): RouteObject[] {
               }),
               ...payments.print,
             },
+            {
+              path: routePatterns.printPortalReport,
+              handle: handle({
+                permission: "portal:reports",
+                module: "customer_portal",
+              }),
+              ...portal.reportPrint,
+            },
           ],
         },
         {
@@ -521,41 +578,100 @@ export function createRoutes(context: RouteContext): RouteObject[] {
           ],
         },
         {
+          id: "portal-session",
           path: routePatterns.portalHome,
-          element: <PortalLayout />,
+          middleware: [createSessionGuard(guardContext, "tenant")],
+          loader: () => null,
+          Component: PortalLayout,
           errorElement: <RouteError />,
+          handle: handle({ crumb: "Portal" }),
           children: [
-            { index: true, Component: PortalHomePlaceholder },
             {
-              id: "portal-session",
-              middleware: [createSessionGuard(guardContext, "tenant")],
-              loader: () => null,
               errorElement: <RouteError />,
               children: [
                 {
+                  index: true,
+                  handle: handle({
+                    permission: "portal:reports",
+                    module: "customer_portal",
+                  }),
+                  ...portal.home,
+                },
+                {
+                  path: routePatterns.portalWorkOrders,
+                  handle: handle({
+                    crumb: "İş emirleri",
+                    permission: "work_order:read",
+                    module: "customer_portal",
+                  }),
+                  children: [
+                    { index: true, ...portal.workOrders },
+                    {
+                      path: routePatterns.portalWorkOrderDetail,
+                      handle: handle({ crumb: "İş emri" }),
+                      ...portal.workOrder,
+                    },
+                  ],
+                },
+                {
+                  path: routePatterns.portalRequest,
+                  handle: handle({
+                    crumb: "Talep aç",
+                    permission: "work_order:request",
+                    module: "customer_portal",
+                  }),
+                  ...portal.request,
+                },
+                {
+                  path: routePatterns.portalReports,
+                  handle: handle({
+                    crumb: "Raporlar",
+                    permission: "portal:reports",
+                    module: "customer_portal",
+                  }),
+                  ...portal.reports,
+                },
+                {
+                  path: routePatterns.portalReportSettings,
+                  handle: handle({
+                    crumb: "Rapor gönderimi",
+                    permission: "portal:reports",
+                    module: "customer_portal",
+                  }),
+                  ...portal.reportSettings,
+                },
+                {
                   path: routePatterns.portalTimesheet,
-                  handle: handle({ permission: "timesheet:approve_customer" }),
+                  handle: handle({
+                    crumb: "Puantaj onayları",
+                    permission: "timesheet:approve_customer",
+                  }),
                   Component: CustomerTimesheetApprovals,
                 },
                 {
                   path: routePatterns.portalProgressPayments,
                   handle: handle({
+                    crumb: "Hakedişler",
                     permission: "progress_payment:approve_customer",
                     module: "contracts",
                   }),
                   Component: CustomerProgressPayments,
                 },
+                { path: "*", Component: NotFoundPage },
               ],
             },
           ],
         },
-        {
-          path: routePatterns.publicFeedback,
-          element: <PublicLayout />,
-          errorElement: <RouteError />,
-          children: [{ index: true, Component: PublicFeedbackPlaceholder }],
-        },
       ],
+    },
+    {
+      // Login'siz QR bildirim sayfası kiracı kökünün dışındadır: kiracı yapılandırması,
+      // kimlik adaptörü ve realtime bağlantısı yüklenmez; marka token yanıtıyla gelir.
+      path: routePatterns.publicFeedback,
+      element: <PublicLayout />,
+      HydrateFallback: PageSkeleton,
+      errorElement: <RouteError />,
+      children: [{ index: true, ...publicFeedbackRoute() }],
     },
   ]
 }

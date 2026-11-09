@@ -66,10 +66,38 @@ const ACTION_PERMISSION: Record<string, Permission> = {
   reopen: "timesheet:approve_hr",
 }
 
+/**
+ * Müşteri kapsamı: müşteri kullanıcısı yalnızca kendi personel temini sözleşmesinin
+ * yüklenicisi olan tüzel kişiliğin, sözleşmenin yürürlükte olduğu aydaki dönemini görür.
+ */
+function visibleToCustomer(
+  auth: AuthContext,
+  period: MockTimesheetPeriod
+): boolean {
+  if (auth.scope.kind !== "customers") return true
+  const customerIds = new Set(auth.scope.ids)
+  const range = monthRange(period.month)
+  return (
+    db.contracts.count(
+      (contract) =>
+        contract.tenantId === auth.tenant.slug &&
+        contract.type === "staffing" &&
+        customerIds.has(contract.customerId) &&
+        contract.contractorLegalEntityId === period.legalEntityId &&
+        contract.startDate <= range.to &&
+        contract.endDate >= range.from
+    ) > 0
+  )
+}
+
 function findPeriod(auth: AuthContext, id: string): MockTimesheetPeriod | null {
   ensurePeriods(auth.tenant, mockClock.now())
   const period = db.timesheetPeriods.findById(id)
-  return period && period.tenantId === auth.tenant.slug ? period : null
+  return period &&
+    period.tenantId === auth.tenant.slug &&
+    visibleToCustomer(auth, period)
+    ? period
+    : null
 }
 
 const monthLabel = (month: string) =>
@@ -389,7 +417,8 @@ export const timesheetHandlers = [
           (period) =>
             period.tenantId === auth.tenant.slug &&
             period.customerApprovalRequired &&
-            period.status === "region_approved"
+            period.status === "region_approved" &&
+            visibleToCustomer(auth, period)
         )
         .map((period) => serializePeriod(period, auth.permissions))
       return ok({ items })

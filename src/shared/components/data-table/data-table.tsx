@@ -80,6 +80,8 @@ export interface DataTableProps<
   enableCsvExport?: boolean
   /** Uzun sayfalarda satır sanallaştırma (sabit yükseklikli kaydırma alanı) */
   virtualized?: { height: number; estimateRowHeight?: number }
+  /** Satır vurgusu (ör. SLA'sı aşılmış iş emri). Renk tek başına anlam taşımamalı. */
+  getRowClassName?: (row: TData) => string | undefined
 }
 
 export function DataTable<TData extends object, TSort extends string = string>({
@@ -101,6 +103,7 @@ export function DataTable<TData extends object, TSort extends string = string>({
   renderBulkActions,
   enableCsvExport = false,
   virtualized,
+  getRowClassName,
 }: DataTableProps<TData, TSort>) {
   const hiddenColumns =
     useUiStore((store) => store.hiddenColumns[tableId]) ?? EMPTY_HIDDEN
@@ -293,6 +296,7 @@ export function DataTable<TData extends object, TSort extends string = string>({
           <TableRow
             key={row.id}
             data-state={row.getIsSelected() ? "selected" : undefined}
+            className={getRowClassName?.(row.original)}
           >
             {row.getVisibleCells().map((cell) => {
               const cellMeta = cell.column.columnDef.meta

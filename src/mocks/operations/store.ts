@@ -59,6 +59,12 @@ export const ops = {
   pendingLeavesSeeded: new Set<string>(),
   /** Örnek hakedişleri üretilen kiracılar (Faz 3) */
   paymentsSeeded: new Set<string>(),
+  /** Faz 4: tenantId → denetimlerin üretildiği son gün (dahil) */
+  auditsGeneratedUntil: new Map<string, string>(),
+  /** Faz 4: örnek iş emirleri üretilen kiracılar */
+  workOrdersSeeded: new Set<string>(),
+  /** Faz 4: tenantId → iş emri sıra numarası */
+  workOrderCounters: new Map<string, number>(),
 }
 
 export function resetOperations(): void {
@@ -71,6 +77,9 @@ export function resetOperations(): void {
   ops.versions.clear()
   ops.pendingLeavesSeeded.clear()
   ops.paymentsSeeded.clear()
+  ops.auditsGeneratedUntil.clear()
+  ops.workOrdersSeeded.clear()
+  ops.workOrderCounters.clear()
 }
 
 export function tenantDays(tenantId: string) {
