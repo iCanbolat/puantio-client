@@ -25,7 +25,8 @@ test.describe("Faz 2: vardiya, yoklama ve puantaj", () => {
     await expect(page.getByTestId("count-no_show")).toHaveText("3")
     await expect(page).toHaveTitle(/^\(3\) /)
 
-    await page.getByRole("link", { name: "Alarm merkezi (3)" }).click()
+    // Mobilde alarm bildirimleri bağlantının üstüne düşer (fare üstündeyken kapanmaz): klavyeyle
+    await page.getByRole("link", { name: "Alarm merkezi (3)" }).press("Enter")
     const alarms = page.getByRole("list", { name: "Alarmlar" })
     await expect(alarms.getByRole("listitem", { name: /alarmı$/ })).toHaveCount(
       3

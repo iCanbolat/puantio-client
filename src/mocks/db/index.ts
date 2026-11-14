@@ -17,6 +17,7 @@ import { buildPayrollProfiles } from "../operations/payroll-seed"
 import { resetOperations } from "../operations/store"
 import { buildShiftTemplates } from "../operations/templates"
 import { buildContractTemplates, buildContracts } from "../contracts/seed"
+import { seedOhs } from "../ohs/seed"
 import { seedQuality } from "../quality/seed"
 import { Collection } from "./collection"
 import type {
@@ -24,6 +25,13 @@ import type {
   MockArea,
   MockAudit,
   MockAuditEvent,
+  MockCertificate,
+  MockHealthAccessLog,
+  MockHealthRecord,
+  MockOhsSettings,
+  MockPersonnelDocument,
+  MockTrainingRecord,
+  MockTrainingSession,
   MockAuditPlan,
   MockAuditTemplate,
   MockContract,
@@ -99,6 +107,16 @@ export const db = {
     "reportSubscriptions"
   ),
   uploads: new Collection<MockUpload>("uploads"),
+  // Faz 6
+  ohsSettings: new Collection<MockOhsSettings>("ohsSettings"),
+  trainingSessions: new Collection<MockTrainingSession>("trainingSessions"),
+  trainingRecords: new Collection<MockTrainingRecord>("trainingRecords"),
+  certificates: new Collection<MockCertificate>("certificates"),
+  healthRecords: new Collection<MockHealthRecord>("healthRecords"),
+  healthAccessLogs: new Collection<MockHealthAccessLog>("healthAccessLogs"),
+  personnelDocuments: new Collection<MockPersonnelDocument>(
+    "personnelDocuments"
+  ),
 }
 
 /** Kiracıya ait iş verisi koleksiyonları ("Boş veri" senaryosu bunları temizler) */
@@ -130,6 +148,13 @@ export const TENANT_DATA_COLLECTIONS = [
   "feedbackSubmissions",
   "reportSubscriptions",
   "uploads",
+  "ohsSettings",
+  "trainingSessions",
+  "trainingRecords",
+  "certificates",
+  "healthRecords",
+  "healthAccessLogs",
+  "personnelDocuments",
 ] as const satisfies readonly (keyof typeof db)[]
 
 export type SeedProfile = "test" | "dev" | "scale"
@@ -212,6 +237,7 @@ export function seedDatabase(
     db.contractTemplates.insertMany(contractTemplates)
     db.contracts.insertMany(buildContracts(tenant, data, contractTemplates))
     seedQuality(tenant, data)
+    seedOhs(tenant, data)
     db.auditEvents.insert({
       id: `aud-${tenant.slug}-1`,
       tenantId: tenant.slug,

@@ -29,6 +29,7 @@ import {
   isRealtimeBlocked,
   setRealtimeBlocked,
 } from "./realtime"
+import { simulateCertificateExpiry } from "./ohs/simulate"
 import { DEFAULT_SCENARIO_ID, applyScenario, findScenario } from "./scenarios"
 import { simulateAudit, simulateFeedback } from "./quality/simulate"
 
@@ -105,6 +106,10 @@ export const mockController = {
   /** Faz 4: saha uygulamasından kritik bulgulu denetim sonucu */
   simulateAudit(): string | null {
     return simulateAudit(store().tenantSlug || DEFAULT_MOCK_TENANT)
+  },
+  /** Faz 6: senaryo lokasyonunda bir gerekli sertifikanın süresini doldurur */
+  simulateCertificateExpiry(): string | null {
+    return simulateCertificateExpiry(store().tenantSlug || DEFAULT_MOCK_TENANT)
   },
   /** Canlı bağlantıyı kopar / aç; yeni durumu döner */
   toggleRealtime(): boolean {

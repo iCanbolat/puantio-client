@@ -151,6 +151,8 @@ test.describe("Faz 3: sözleşme, kadro taahhüdü ve hakediş", () => {
     gotoApp,
     expectNoA11yViolations,
   }) => {
+    // Üç sayfa tam yüklenir; verify'daki paralel yükte soğuk derleme 30 sn'yi aşabiliyor
+    test.slow()
     await gotoApp("/kadro-raporu?sozlesme=ct-temizlik-orta-kadro&ay=2026-09", {
       senaryo: "headcount-shortfall",
       saat: OCTOBER,

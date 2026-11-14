@@ -176,6 +176,7 @@ function importRow(
         serviceLines: auth.tenant.serviceLines.slice(0, 1),
         workingHours: { days: [1, 2, 3, 4, 5], start: "07:00", end: "19:00" },
         requiredCertificates: [],
+        hazardClass: null,
         status: "active",
         ...data,
       })

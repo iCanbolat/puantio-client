@@ -20,7 +20,13 @@ import {
   type LocationInput,
 } from "@/entities/location"
 import { OrgUnitSelect } from "@/entities/org-unit"
-import { SERVICE_LINE_LABELS, useTenant, useTerms } from "@/entities/tenant"
+import {
+  HAZARD_CLASSES,
+  HAZARD_CLASS_LABELS,
+  SERVICE_LINE_LABELS,
+  useTenant,
+  useTerms,
+} from "@/entities/tenant"
 import { applyApiErrorToForm } from "@/shared/api/form-errors"
 import { MapPickerLazy } from "@/shared/components/map-picker"
 import { GeofenceRadiusControl } from "@/shared/components/map-picker"
@@ -30,6 +36,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Checkbox } from "@/shared/ui/checkbox"
 import {
   Field,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -61,6 +68,7 @@ const FIELDS = [
 ] as const
 
 const DEFAULT_CENTER = { lat: 41.0082, lng: 28.9784 }
+const DEFAULT_HAZARD = "varsayilan"
 
 function CheckboxList<T extends string | number>({
   idPrefix,
@@ -136,6 +144,7 @@ export function LocationForm({
       },
       targetHeadcount: location?.targetHeadcount ?? 1,
       requiredCertificates: location?.requiredCertificates ?? [],
+      hazardClass: location?.hazardClass ?? null,
       status: location?.status ?? "active",
     },
   })
@@ -498,6 +507,53 @@ export function LocationForm({
                 )}
               />
             </FieldSet>
+            <Field className="sm:max-w-sm">
+              <FieldLabel htmlFor="location-hazard">
+                İSG tehlike sınıfı
+              </FieldLabel>
+              <Controller
+                control={form.control}
+                name="hazardClass"
+                render={({ field }) => {
+                  const options = [
+                    {
+                      value: DEFAULT_HAZARD,
+                      label: `Firma varsayılanı (${HAZARD_CLASS_LABELS[tenant.rules.ohs.defaultHazardClass]})`,
+                    },
+                    ...HAZARD_CLASSES.map((value) => ({
+                      value,
+                      label: HAZARD_CLASS_LABELS[value],
+                    })),
+                  ]
+                  return (
+                    <Select
+                      value={field.value ?? DEFAULT_HAZARD}
+                      onValueChange={(value) => {
+                        field.onChange(
+                          !value || value === DEFAULT_HAZARD ? null : value
+                        )
+                      }}
+                      items={options}
+                    >
+                      <SelectTrigger id="location-hazard" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {options.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )
+                }}
+              />
+              <FieldDescription>
+                İSG eğitimlerinin yenileme periyodunu belirler (personel ana
+                lokasyonundan alır).
+              </FieldDescription>
+            </Field>
           </FieldGroup>
         </CardContent>
       </Card>

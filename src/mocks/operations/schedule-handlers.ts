@@ -10,6 +10,7 @@ import {
   type ShiftTemplate,
 } from "@/entities/shift"
 import { LEAVE_TYPE_LABELS } from "@/entities/leave"
+import { evaluateRequirements, requirementMessage } from "@/entities/ohs"
 import { addDaysIso } from "@/shared/lib/work-time"
 
 import { audit, createScope, withAuth } from "../auth/context"
@@ -25,6 +26,7 @@ import {
   parseQuery,
   problem,
 } from "../http"
+import { ohsRules, personCertificates } from "../ohs/store"
 import { isoDateRangeValid } from "./common"
 import { rand } from "./hash"
 import { holidaysBetween } from "./holidays"
@@ -322,6 +324,18 @@ export const scheduleHandlers = [
         assignments,
         leaves,
         holidays: holidaysBetween(query.from, query.to),
+        compliance: auth.tenant.modules.includes("ohs")
+          ? {
+              requiredCertificates: location.requiredCertificates,
+              personnel: roster.map((member) => ({
+                personnelId: member.id,
+                certificates: personCertificates(member.id).map((cert) => ({
+                  type: cert.type,
+                  expiresAt: cert.expiresAt,
+                })),
+              })),
+            }
+          : { requiredCertificates: [], personnel: [] },
       }
       return ok(response)
     })
@@ -417,6 +431,34 @@ export const scheduleHandlers = [
         }
       }
 
+      // Faz 6: lokasyon sertifika gereksinimi (kiracı politikası "engel" ise kesin kural)
+      const rules = ohsRules(auth.tenant)
+      if (
+        auth.tenant.modules.includes("ohs") &&
+        rules.certificatePolicy === "block" &&
+        location.requiredCertificates.length > 0
+      ) {
+        for (const { next } of planned) {
+          if (!next) continue
+          const failing = evaluateRequirements(
+            location.requiredCertificates,
+            personCertificates(next.personnelId).map((cert) => ({
+              type: cert.type,
+              expiresAt: cert.expiresAt,
+            })),
+            next.date,
+            rules.expiringWarnDays
+          ).find((item) => item.state === "missing" || item.state === "expired")
+          if (failing) {
+            const person = people.get(next.personnelId)!
+            return problem(
+              422,
+              "CERTIFICATE_NONCOMPLIANT",
+              `${person.firstName} ${person.lastName} (${next.date}): ${requirementMessage(failing)}`
+            )
+          }
+        }
+      }
       for (const { change, next } of planned) {
         for (const existing of assignmentsBetween(
           tenantId,

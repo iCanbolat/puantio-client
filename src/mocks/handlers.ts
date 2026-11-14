@@ -9,6 +9,7 @@ import { attendanceHandlers } from "./operations/attendance-handlers"
 import { leaveHandlers } from "./operations/leave-handlers"
 import { scheduleHandlers } from "./operations/schedule-handlers"
 import { timesheetHandlers } from "./operations/timesheet-handlers"
+import { ohsMockHandlers } from "./ohs/handlers"
 import { platformHandlers } from "./platform/handlers"
 import { qualityHandlers } from "./quality/handlers"
 import { realtimeHandlers } from "./realtime"
@@ -33,6 +34,7 @@ export const handlers = [
   ...contractHandlers,
   ...progressPaymentHandlers,
   ...qualityHandlers,
+  ...ohsMockHandlers,
   ...showcaseHandlers,
   ...realtimeHandlers,
 ]

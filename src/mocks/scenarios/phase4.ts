@@ -130,6 +130,9 @@ function setupAuditCriticalFail(): void {
 }
 
 function setupSlaBreach(): void {
+  // Yoklama gürültüsü kapalı: alarm bildirimleri 3'lük bildirim yığınını doldurup iş emri
+  // hata mesajını gizliyordu (E2E-4.3)
+  ops.flags.noise = false
   for (const tenant of tenants()) {
     const target = ensureFeedbackArea(tenant.slug)
     if (!target) continue
@@ -333,7 +336,7 @@ export const phase4Scenarios = [
     id: "work-order-sla-breach",
     label: "İş emri SLA aşımı",
     description:
-      "Biri acil, biri yüksek öncelikli iki iş emrinin SLA'sı aşılmış; biri zamanında.",
+      "Biri acil, biri yüksek öncelikli iki iş emrinin SLA'sı aşılmış; biri zamanında. Yoklama gürültüsü kapalı.",
     phase: 4,
     setup: setupSlaBreach,
   }),

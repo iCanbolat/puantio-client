@@ -395,6 +395,21 @@ export function MockDevtools() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
+                  const result = mockController.simulateCertificateExpiry()
+                  setFieldMessage(
+                    result
+                      ? `Sertifika süresi doldu: ${result}`
+                      : "Senaryo lokasyonunda gerekli sertifika yok."
+                  )
+                  void queryClient.invalidateQueries()
+                }}
+              >
+                Sertifika süresini doldur
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
                   const result = mockController.simulateFeedback()
                   setFieldMessage(
                     result

@@ -13,7 +13,12 @@ import {
   type Area,
 } from "@/entities/location"
 import { Can, useCan } from "@/entities/session"
-import { SERVICE_LINE_LABELS, useTerms } from "@/entities/tenant"
+import {
+  HAZARD_CLASS_LABELS,
+  SERVICE_LINE_LABELS,
+  useTenant,
+  useTerms,
+} from "@/entities/tenant"
 import { DetailList } from "@/shared/components/detail-list"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorState } from "@/shared/components/error-state"
@@ -46,6 +51,7 @@ const tabSchema = z.object({
 export function LocationDetailPage() {
   const { locationId = "" } = useParams()
   const terms = useTerms()
+  const tenant = useTenant()
   const [{ sekme }, setTab] = useSearchParamsState(tabSchema)
   const location = useQuery(locationQueries.detail(locationId))
   const areas = useQuery(locationQueries.areas(locationId))
@@ -163,6 +169,12 @@ export function LocationDetailPage() {
                           .map((item) => CERTIFICATE_LABELS[item])
                           .join(", ")
                       : "Yok",
+                  },
+                  {
+                    label: "İSG tehlike sınıfı",
+                    value: data.hazardClass
+                      ? HAZARD_CLASS_LABELS[data.hazardClass]
+                      : `Firma varsayılanı (${HAZARD_CLASS_LABELS[tenant.rules.ohs.defaultHazardClass]})`,
                   },
                 ]}
               />

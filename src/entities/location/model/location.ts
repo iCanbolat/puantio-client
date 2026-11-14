@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { serviceLineSchema } from "@/entities/tenant"
+import { hazardClassSchema, serviceLineSchema } from "@/entities/tenant"
 import { isoDateTimeSchema } from "@/shared/lib/date"
 import {
   GEOFENCE_RADIUS,
@@ -95,6 +95,8 @@ export const locationSchema = z.object({
   workingHours: workingHoursSchema,
   targetHeadcount: z.number().int().min(0),
   requiredCertificates: z.array(certificateTypeSchema),
+  /** İSG tehlike sınıfı; `null` = kiracı varsayılanı (Faz 6) */
+  hazardClass: hazardClassSchema.nullable().catch(null),
   status: locationStatusSchema,
   areaCount: z.number().int().min(0),
   updatedAt: isoDateTimeSchema,
@@ -152,6 +154,7 @@ export function createLocationInputSchema(
       .min(0, "Negatif olamaz")
       .max(5000, "En fazla 5.000"),
     requiredCertificates: z.array(certificateTypeSchema),
+    hazardClass: hazardClassSchema.nullable(),
     status: locationStatusSchema,
   })
 }

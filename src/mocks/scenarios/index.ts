@@ -5,6 +5,7 @@ import { phase0Scenarios } from "./phase0"
 import { phase2Scenarios } from "./phase2"
 import { phase3Scenarios } from "./phase3"
 import { phase4Scenarios } from "./phase4"
+import { phase6Scenarios } from "./phase6"
 import { setRealtimeBlocked } from "../realtime"
 import type { ScenarioDefinition } from "./types"
 
@@ -16,6 +17,7 @@ export const scenarios: readonly ScenarioDefinition[] = [
   ...phase2Scenarios,
   ...phase3Scenarios,
   ...phase4Scenarios,
+  ...phase6Scenarios,
 ]
 
 export type ScenarioId = string

@@ -1,3 +1,8 @@
+import {
+  evaluateRequirements,
+  requirementMessage,
+  type ScheduleCompliance,
+} from "@/entities/ohs"
 import type { LaborRules } from "@/entities/tenant"
 import {
   HOUR_MS,
@@ -39,6 +44,9 @@ export const RULE_CODES = [
   "rest_period",
   "weekly_rest",
   "annual_overtime",
+  "certificate_missing",
+  "certificate_expired",
+  "certificate_expiring",
 ] as const
 export type RuleCode = (typeof RULE_CODES)[number]
 
@@ -240,4 +248,65 @@ export function violationsByShift(
     }
   }
   return map
+}
+
+export interface CertificateCheckOptions {
+  policy: "block" | "warn"
+  warnDays: number
+  /** Taslak (kaydedilecek) atama mı? Engel yalnızca taslaklarda uygulanır. */
+  isDraft: (shift: RuleShift) => boolean
+}
+
+/**
+ * Faz 6 lokasyon uygunluğu: gerekli sertifikası eksik veya vardiya gününde süresi dolmuş
+ * personel. Kiracı politikası "engel" ise taslak atama kaydı engeller; kayıtlı atamalar ve
+ * yakında dolacak sertifikalar uyarıdır. Kesin kontrol backend'dedir.
+ */
+export function evaluateCertificates(
+  shifts: readonly RuleShift[],
+  compliance: ScheduleCompliance,
+  options: CertificateCheckOptions
+): RuleViolation[] {
+  if (compliance.requiredCertificates.length === 0) return []
+  const byPerson = new Map(
+    compliance.personnel.map((item) => [item.personnelId, item.certificates])
+  )
+  // Kişi × sertifika × durum × seviye başına tek ihlal; rozet ilgili tüm hücrelerde görünür
+  const grouped = new Map<string, RuleViolation>()
+  for (const shift of shifts) {
+    const results = evaluateRequirements(
+      compliance.requiredCertificates,
+      byPerson.get(shift.personnelId) ?? [],
+      shift.date,
+      options.warnDays
+    )
+    for (const result of results) {
+      if (result.state === "valid") continue
+      const hard = result.state !== "expiring"
+      const severity =
+        hard && options.policy === "block" && options.isDraft(shift)
+          ? "block"
+          : "warn"
+      const key = `${shift.personnelId}|${result.type}|${result.state}|${severity}`
+      const existing = grouped.get(key)
+      if (existing) {
+        existing.shiftIds.push(shift.id)
+        continue
+      }
+      grouped.set(key, {
+        code:
+          result.state === "missing"
+            ? "certificate_missing"
+            : result.state === "expired"
+              ? "certificate_expired"
+              : "certificate_expiring",
+        severity,
+        personnelId: shift.personnelId,
+        shiftIds: [shift.id],
+        message: requirementMessage(result),
+      })
+    }
+  }
+  const violations = [...grouped.values()]
+  return violations
 }

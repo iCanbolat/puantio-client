@@ -10,11 +10,14 @@ import {
   personnelFullName,
   personnelQueries,
 } from "@/entities/personnel"
-import { Can } from "@/entities/session"
+import { Can, useCan } from "@/entities/session"
+import { PersonnelHealthTab } from "@/features/health-surveillance"
 import { PersonnelLeaveTab } from "@/features/leave"
+import { PersonnelOhsTab } from "@/features/ohs"
+import { PersonnelFileTab } from "@/features/personnel-file"
 import { PersonnelShiftsTab } from "@/features/scheduling"
 import { PersonnelTimesheetTab } from "@/features/timesheet"
-import { SERVICE_LINE_LABELS, useTerms } from "@/entities/tenant"
+import { SERVICE_LINE_LABELS, useHasModule, useTerms } from "@/entities/tenant"
 import { DetailList } from "@/shared/components/detail-list"
 import { EmptyState } from "@/shared/components/empty-state"
 import { ErrorState } from "@/shared/components/error-state"
@@ -80,8 +83,9 @@ const TABS = [
   { value: "puantaj", label: "Puantaj" },
   { value: "izin", label: "İzin" },
   { value: "zimmet", label: "Zimmet", phase: "5" },
-  { value: "isg", label: "İSG", phase: "6" },
-  { value: "ozluk", label: "Özlük", phase: "6" },
+  { value: "isg", label: "İSG" },
+  { value: "saglik", label: "Sağlık" },
+  { value: "ozluk", label: "Özlük" },
 ] as const
 type TabValue = (typeof TABS)[number]["value"]
 const tabSchema = z.object({
@@ -125,6 +129,19 @@ export function PersonnelDetailPage() {
   const terms = useTerms()
   const [{ sekme }, setTab] = useSearchParamsState(tabSchema)
   const query = useQuery(personnelQueries.detail(personnelId))
+  const hasOhs = useHasModule("ohs")
+  const canOhs = useCan("ohs:read")
+  // KVKK: sağlık yetkisi yoksa sekme ve içerik DOM'a hiç eklenmez
+  const canHealth = useCan("health:read")
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.value === "isg") return hasOhs && canOhs
+    if (tab.value === "saglik") return hasOhs && canHealth
+    if (tab.value === "ozluk") return hasOhs
+    return true
+  })
+  const activeTab = visibleTabs.some((tab) => tab.value === sekme)
+    ? sekme
+    : "genel"
   if (query.isPending) return <PageSkeleton />
   if (query.isError)
     return (
@@ -157,13 +174,13 @@ export function PersonnelDetailPage() {
         }
       />
       <Tabs
-        value={sekme}
+        value={activeTab}
         onValueChange={(value) => {
           setTab({ sekme: value as TabValue })
         }}
       >
         <TabsList className="flex-wrap">
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
               {tab.label}
             </TabsTrigger>
@@ -272,6 +289,27 @@ export function PersonnelDetailPage() {
             />
           </Can>
         </TabsContent>
+        {hasOhs && canOhs ? (
+          <TabsContent value="isg" className="pt-4">
+            <PersonnelOhsTab
+              personnelId={person.id}
+              personnelName={personnelFullName(person)}
+            />
+          </TabsContent>
+        ) : null}
+        {hasOhs && canHealth ? (
+          <TabsContent value="saglik" className="pt-4">
+            <PersonnelHealthTab
+              personnelId={person.id}
+              personnelName={personnelFullName(person)}
+            />
+          </TabsContent>
+        ) : null}
+        {hasOhs ? (
+          <TabsContent value="ozluk" className="pt-4">
+            <PersonnelFileTab personnelId={person.id} />
+          </TabsContent>
+        ) : null}
         {TABS.filter((tab) => "phase" in tab).map((tab) => (
           <TabsContent key={tab.value} value={tab.value} className="pt-4">
             <EmptyState

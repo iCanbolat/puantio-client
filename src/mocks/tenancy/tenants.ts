@@ -1,5 +1,6 @@
 import {
   DEFAULT_LABOR_RULES,
+  DEFAULT_OHS_RULES,
   DEFAULT_QUALITY_RULES,
   type TenantConfig,
 } from "@/entities/tenant"
@@ -27,6 +28,7 @@ const baseRules = {
   escalationMinutes: 15,
   labor: DEFAULT_LABOR_RULES,
   quality: DEFAULT_QUALITY_RULES,
+  ohs: DEFAULT_OHS_RULES,
   geofence: { min: 25, max: 1000, default: 100 },
 }
 

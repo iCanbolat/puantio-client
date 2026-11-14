@@ -6,7 +6,11 @@ import {
   updateTenantSchema,
 } from "@/features/platform-admin/model/platform"
 
-import { DEFAULT_LABOR_RULES, DEFAULT_QUALITY_RULES } from "@/entities/tenant"
+import {
+  DEFAULT_LABOR_RULES,
+  DEFAULT_OHS_RULES,
+  DEFAULT_QUALITY_RULES,
+} from "@/entities/tenant"
 
 import { withAuth } from "../auth/context"
 import { mockClock } from "../clock"
@@ -121,6 +125,7 @@ export const platformHandlers = [
           escalationMinutes: 15,
           labor: { ...DEFAULT_LABOR_RULES },
           quality: structuredClone(DEFAULT_QUALITY_RULES),
+          ohs: structuredClone(DEFAULT_OHS_RULES),
           geofence: { min: 25, max: 1000, default: 100 },
         },
         createdAt: mockClock.now().toISOString(),

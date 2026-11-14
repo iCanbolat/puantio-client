@@ -12,6 +12,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
+  // Faz 6 ile 82 senaryo: verify'da soğuk başlayan dev sunucusunu 5 işçi boğuyor, ilk
+  // testler lazy derlemede 30 sn'yi aşıyordu (tek başına geçiyorlar). Yerelde 4 işçi.
+  workers: isCI ? undefined : 4,
   // Paket ve route ağacı büyüdükçe paralel yük altında dev sunucusunun lazy chunk derlemesi
   // 5 sn'yi aşabiliyor (Faz 4'te verify'da görüldü; testler tek başına 1–2 sn'de geçiyor)
   expect: { timeout: 10_000 },

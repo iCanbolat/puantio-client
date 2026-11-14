@@ -12,11 +12,14 @@ import { contractRoutes } from "@/features/contracts"
 import { customerRoutes } from "@/features/customer-management"
 import { customerPortalRoutes } from "@/features/customer-portal"
 import { devShowcaseRoute } from "@/features/dev-showcase"
+import { healthRoutes } from "@/features/health-surveillance"
 import { locationRoutes } from "@/features/location-management"
 import { leaveRoutes } from "@/features/leave"
 import { importRoute } from "@/features/master-data-import"
+import { ohsRoutes } from "@/features/ohs"
 import { organizationRoutes } from "@/features/organization"
 import { payrollRoutes } from "@/features/payroll-export"
+import { personnelFileRoutes } from "@/features/personnel-file"
 import { personnelRoutes } from "@/features/personnel-management"
 import { platformRoutes } from "@/features/platform-admin"
 import { publicFeedbackRoute } from "@/features/public-feedback"
@@ -84,12 +87,6 @@ const UPCOMING: {
     handle: { permission: "inventory:read", module: "inventory" },
   },
   {
-    path: routePatterns.upcoming.ohs,
-    title: "İSG ve özlük",
-    phase: "6",
-    handle: { permission: "ohs:read", module: "ohs" },
-  },
-  {
     path: routePatterns.upcoming.maintenance,
     title: "Teknik bakım",
     phase: "5b",
@@ -124,6 +121,9 @@ export function createRoutes(context: RouteContext): RouteObject[] {
   const quality = qualityRoutes(queryClient)
   const workOrders = workOrderRoutes(queryClient)
   const portal = customerPortalRoutes(queryClient)
+  const ohs = ohsRoutes(queryClient)
+  const health = healthRoutes()
+  const personnelFiles = personnelFileRoutes(queryClient)
 
   const panelChildren: RouteObject[] = [
     {
@@ -393,6 +393,65 @@ export function createRoutes(context: RouteContext): RouteObject[] {
       ...workOrders.catalog,
     },
     {
+      path: routePatterns.ohs,
+      handle: handle({ crumb: "İSG ve özlük", module: "ohs" }),
+      children: [
+        {
+          index: true,
+          handle: handle({ permission: "ohs:read" }),
+          ...ohs.overview,
+        },
+        {
+          path: routePatterns.ohsTrainings,
+          handle: handle({ crumb: "Eğitimler", permission: "ohs:read" }),
+          ...ohs.trainings,
+        },
+        {
+          path: routePatterns.ohsCertificates,
+          handle: handle({ crumb: "Sertifikalar", permission: "ohs:read" }),
+          ...ohs.certificates,
+        },
+        {
+          path: routePatterns.ohsAuditPack,
+          handle: handle({ crumb: "Denetim paketi", permission: "ohs:read" }),
+          ...ohs.auditPack,
+        },
+        {
+          path: routePatterns.ohsHealth,
+          handle: handle({
+            crumb: "Sağlık gözetimi",
+            permission: "health:read",
+          }),
+          children: [
+            { index: true, ...health.list },
+            {
+              path: routePatterns.ohsHealthAccess,
+              handle: handle({ crumb: "Erişim kayıtları" }),
+              ...health.accessLogs,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      path: routePatterns.personnelFiles,
+      handle: handle({
+        crumb: "Özlük dosyaları",
+        permission: "personnel_file:read",
+        module: "ohs",
+      }),
+      ...personnelFiles.list,
+    },
+    {
+      path: routePatterns.settingsOhs,
+      handle: handle({
+        crumb: "İSG ayarları",
+        permission: "ohs:read",
+        module: "ohs",
+      }),
+      ...ohs.settings,
+    },
+    {
       path: routePatterns.import,
       handle: handle({
         crumb: "Excel'den içe aktar",
@@ -529,6 +588,14 @@ export function createRoutes(context: RouteContext): RouteObject[] {
               }),
               ...portal.reportPrint,
             },
+            {
+              path: routePatterns.printAuditPack,
+              handle: handle({
+                permission: ["ohs:read", "portal:audit_pack"],
+                module: "ohs",
+              }),
+              ...ohs.auditPackPrint,
+            },
           ],
         },
         {
@@ -639,6 +706,15 @@ export function createRoutes(context: RouteContext): RouteObject[] {
                     module: "customer_portal",
                   }),
                   ...portal.reportSettings,
+                },
+                {
+                  path: routePatterns.portalAuditPack,
+                  handle: handle({
+                    crumb: "İSG denetim paketi",
+                    permission: "portal:audit_pack",
+                    module: "ohs",
+                  }),
+                  ...ohs.portalAuditPack,
                 },
                 {
                   path: routePatterns.portalTimesheet,

@@ -96,6 +96,10 @@ export const PERMISSION_GROUPS = [
         id: "portal:report_settings",
         label: "Rapor gönderim ayarlarını düzenle",
       },
+      {
+        id: "portal:audit_pack",
+        label: "Portalda İSG denetim paketini görüntüle",
+      },
     ],
   },
   {
@@ -112,7 +116,11 @@ export const PERMISSION_GROUPS = [
     permissions: [
       { id: "ohs:read", label: "İSG eğitim ve sertifikaları görüntüle" },
       { id: "ohs:write", label: "İSG kayıtlarını düzenle" },
-      { id: "personnel_file:read", label: "Dijital özlük dosyası" },
+      { id: "personnel_file:read", label: "Dijital özlük dosyasını görüntüle" },
+      {
+        id: "personnel_file:write",
+        label: "Özlük belgesi yükle ve düzenle",
+      },
       { id: "health:read", label: "Sağlık verisi görüntüle (özel nitelikli)" },
       { id: "health:write", label: "Sağlık verisi düzenle (özel nitelikli)" },
     ],

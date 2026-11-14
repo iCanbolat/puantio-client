@@ -67,6 +67,7 @@ import {
 } from "../components/shift-palette"
 import { buildBoard, cellShiftId, type BoardCell } from "../domain/board"
 import {
+  evaluateCertificates,
   evaluateSchedule,
   hasBlockingViolation,
   violationsByShift,
@@ -140,26 +141,30 @@ export function PlanningPage() {
     () => (schedule ? buildBoard(schedule, days, drafts, templates) : null),
     [schedule, days, drafts, templates]
   )
-  const violations = useMemo(
-    () =>
-      board && schedule
-        ? evaluateSchedule(board.ruleShifts, board.ruleLeaves, {
-            rules: tenant.rules.labor,
-            overtimeHoursYtd: new Map(
-              schedule.roster.map((member) => [
-                member.id,
-                member.overtimeHoursYtd,
-              ])
-            ),
-          }).filter((violation) =>
-            // Yalnızca bu lokasyonun görünen hücrelerine dokunan ihlaller
-            violation.shiftIds.some(
-              (id) => id.startsWith("cell:") && days.includes(id.slice(-10))
-            )
-          )
-        : [],
-    [board, schedule, tenant.rules.labor, days]
-  )
+  const violations = useMemo(() => {
+    if (!board || !schedule) return []
+    const visibleHere = (id: string) =>
+      id.startsWith("cell:") && days.includes(id.slice(-10))
+    const labor = evaluateSchedule(board.ruleShifts, board.ruleLeaves, {
+      rules: tenant.rules.labor,
+      overtimeHoursYtd: new Map(
+        schedule.roster.map((member) => [member.id, member.overtimeHoursYtd])
+      ),
+    }).filter((violation) =>
+      // Yalnızca bu lokasyonun görünen hücrelerine dokunan ihlaller
+      violation.shiftIds.some(visibleHere)
+    )
+    const certificates = evaluateCertificates(
+      board.ruleShifts.filter((shift) => visibleHere(shift.id)),
+      schedule.compliance,
+      {
+        policy: tenant.rules.ohs.certificatePolicy,
+        warnDays: tenant.rules.ohs.expiringWarnDays,
+        isDraft: (shift) => `${shift.personnelId}|${shift.date}` in drafts,
+      }
+    )
+    return [...labor, ...certificates]
+  }, [board, schedule, tenant.rules.labor, tenant.rules.ohs, days, drafts])
   const byShift = useMemo(() => violationsByShift(violations), [violations])
   const blocking = hasBlockingViolation(violations)
   const draftCount = Object.keys(drafts).length

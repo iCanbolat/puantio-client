@@ -68,6 +68,7 @@ export const SYSTEM_ROLE_TEMPLATES: Record<
       "work_order:read",
       "work_order:write",
       "inventory:read",
+      "ohs:read",
     ],
   },
   regional_manager: {
@@ -137,6 +138,7 @@ export const SYSTEM_ROLE_TEMPLATES: Record<
       "schedule:read",
       "attendance:read",
       "personnel_file:read",
+      "personnel_file:write",
     ],
   },
   finance: {
@@ -173,7 +175,11 @@ export const SYSTEM_ROLE_TEMPLATES: Record<
       "health:write",
       "personnel:read",
       "personnel_file:read",
+      "personnel_file:write",
       "location:read",
+      "org:read",
+      "customer:read",
+      "schedule:read",
     ],
   },
   customer_admin: {
@@ -190,6 +196,7 @@ export const SYSTEM_ROLE_TEMPLATES: Record<
       "work_order:request",
       "portal:reports",
       "portal:report_settings",
+      "portal:audit_pack",
     ],
   },
   customer_user: {

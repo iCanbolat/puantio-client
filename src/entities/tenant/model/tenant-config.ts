@@ -209,6 +209,45 @@ export const qualityRulesSchema = z.object({
 })
 export type QualityRules = z.infer<typeof qualityRulesSchema>
 
+/** İSG tehlike sınıfı (6331 sayılı kanun): eğitim yenileme periyodunu belirler */
+export const HAZARD_CLASSES = ["low", "dangerous", "very_dangerous"] as const
+export const hazardClassSchema = z.enum(HAZARD_CLASSES)
+export type HazardClass = z.infer<typeof hazardClassSchema>
+export const HAZARD_CLASS_LABELS: Record<HazardClass, string> = {
+  low: "Az tehlikeli",
+  dangerous: "Tehlikeli",
+  very_dangerous: "Çok tehlikeli",
+}
+
+/**
+ * İSG ve özlük varsayılanları (Faz 6). Tehlike sınıfı lokasyonda tutulur; lokasyonda boşsa
+ * kiracı varsayılanı kullanılır.
+ */
+export const DEFAULT_OHS_RULES = {
+  defaultHazardClass: "dangerous" as HazardClass,
+  /** Tehlike sınıfına göre temel İSG eğitimi yenileme periyodu (yıl) */
+  renewalYears: { low: 3, dangerous: 2, very_dangerous: 1 },
+  /** Gerekli sertifikası eksik/süresi dolmuş personel vardiyaya atanınca: engel veya uyarı */
+  certificatePolicy: "block" as "block" | "warn",
+  /** Bu kadar gün içinde dolacak sertifika için her zaman uyarı */
+  expiringWarnDays: 30,
+  /** Müşteri denetim paketinde sağlık uygunluğu ("Uygun") gösterilsin mi */
+  includeHealthFitnessInAuditPack: false,
+}
+
+export const ohsRulesSchema = z.object({
+  defaultHazardClass: hazardClassSchema,
+  renewalYears: z.object({
+    low: z.number().int().min(1).max(10),
+    dangerous: z.number().int().min(1).max(10),
+    very_dangerous: z.number().int().min(1).max(10),
+  }),
+  certificatePolicy: z.enum(["block", "warn"]),
+  expiringWarnDays: z.number().int().min(0).max(180),
+  includeHealthFitnessInAuditPack: z.boolean(),
+})
+export type OhsRules = z.infer<typeof ohsRulesSchema>
+
 export const tenantRulesSchema = z
   .object({
     idleTimeoutMinutes: z.number().int().min(5).max(240),
@@ -219,6 +258,7 @@ export const tenantRulesSchema = z
     /** 4857 sayılı İş Kanunu varsayılanları; kural motoru uyarı üretir, kesin karar backend'de */
     labor: laborRulesSchema.default(DEFAULT_LABOR_RULES),
     quality: qualityRulesSchema.default(DEFAULT_QUALITY_RULES),
+    ohs: ohsRulesSchema.default(DEFAULT_OHS_RULES),
     geofence: z.object({
       min: z.number().int().min(10),
       max: z.number().int().max(5000),

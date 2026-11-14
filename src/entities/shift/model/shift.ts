@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { scheduleComplianceSchema } from "@/entities/ohs"
+
 import { isoDateSchema, isoDateTimeSchema } from "@/shared/lib/date"
 import { isTimeOfDay, segmentMinutes } from "@/shared/lib/work-time"
 import { brandedId } from "@/shared/types"
@@ -188,6 +190,11 @@ export const locationScheduleSchema = z.object({
       kind: z.enum(["full", "half"]),
     })
   ),
+  /** Faz 6: lokasyon sertifika gereksinimi + kadronun sertifikaları (İSG modülü kapalıysa boş) */
+  compliance: scheduleComplianceSchema.default({
+    requiredCertificates: [],
+    personnel: [],
+  }),
 })
 export type LocationSchedule = z.infer<typeof locationScheduleSchema>
 

@@ -151,6 +151,9 @@ test.describe("Faz 4: kalite denetim, QR bildirim, iş emirleri ve müşteri por
       isMobile,
       "Sürükle-bırak masaüstü etkileşimi; mobilde kart menüsü kullanılır"
     )
+    // Tüm sütunlar sığsın: yatay taşmada dnd-kit panoyu otomatik kaydırıp bırakmayı
+    // yanlış sütuna düşürüyordu (yük altında ara sıra)
+    await page.setViewportSize({ width: 1800, height: 1000 })
     await gotoApp("/is-emirleri?gorunum=kanban", {
       senaryo: "work-order-sla-breach",
       saat: OCTOBER,
@@ -176,7 +179,14 @@ test.describe("Faz 4: kalite denetim, QR bildirim, iş emirleri ve müşteri por
       const tx = to.x + to.width / 2
       const ty = from.y + from.height / 2
       await page.mouse.move(tx, ty, { steps: 15 })
-      await page.mouse.move(tx + 1, ty + 1)
+      // Pano kenara yaklaşınca otomatik kayar: bırakmadan önce hedefi yeniden ölç
+      const settled = await board
+        .getByRole("region", { name: columnName })
+        .boundingBox()
+      if (!settled) throw new Error("Sütun bulunamadı")
+      await page.mouse.move(settled.x + settled.width / 2, ty + 1, {
+        steps: 5,
+      })
       await page.mouse.up()
     }
 

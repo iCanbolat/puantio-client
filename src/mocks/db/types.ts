@@ -1,5 +1,5 @@
 import type { AccessScope, Permission } from "@/entities/session"
-import type { ServiceLine } from "@/entities/tenant"
+import type { HazardClass, ServiceLine } from "@/entities/tenant"
 import type {
   AreaType,
   CertificateType,
@@ -13,6 +13,7 @@ import type {
   CustomerType,
 } from "@/entities/customer"
 import type { PersonnelStatus, Position } from "@/entities/personnel"
+import type { TrainingType } from "@/entities/ohs"
 import type { Geofence } from "@/shared/lib/geo"
 
 /**
@@ -81,6 +82,8 @@ export interface MockLocation extends Tenanted {
   workingHours: WorkingHours
   targetHeadcount: number
   requiredCertificates: CertificateType[]
+  /** `null` = kiracı varsayılanı */
+  hazardClass: HazardClass | null
   status: LocationStatus
   updatedAt: string
 }
@@ -544,10 +547,96 @@ export interface MockReportSubscription extends Tenanted {
   updatedBy: string
 }
 
-/** Yüklenen dosyalar (iş emri tamamlama ve QR bildirim fotoğrafları) */
+/** Yüklenen dosyalar (iş emri fotoğrafları, özlük ve sertifika belgeleri) */
 export interface MockUpload extends Tenanted {
   name: string
   contentType: string
   size: number
   createdAt: string
+  /** Faz 6: amaç (yetki ve dosya kuralları amaca göre) */
+  purpose?: "work_order_photo" | "personnel_doc" | "certificate_doc"
+}
+
+// Faz 6: İSG ve özlük ----------------------------------------------------------
+
+export interface MockDocumentType {
+  id: string
+  name: string
+  required: boolean
+  /** Belge bu kadar ay geçerli (adli sicil 6 ay); `null` = süresiz */
+  validityMonths: number | null
+  isActive: boolean
+}
+
+/** Kiracının İSG kataloğu (kayıt kimliği = kiracı) */
+export interface MockOhsSettings extends Tenanted {
+  trainingTypes: TrainingType[]
+  documentTypes: MockDocumentType[]
+  /** Sertifika tipi başına varsayılan geçerlilik (ay); yeni kayıtta bitiş önerisi */
+  certificateValidityMonths: Partial<Record<CertificateType, number | null>>
+}
+
+export interface MockTrainingSession extends Tenanted {
+  number: string
+  typeId: string
+  date: string
+  trainer: string
+  locationId: string | null
+  durationHours: number
+  participants: { personnelId: string; attended: boolean | null }[]
+  status: "planned" | "completed" | "cancelled"
+  createdAt: string
+}
+
+export interface MockTrainingRecord extends Tenanted {
+  personnelId: string
+  typeId: string
+  completedAt: string
+  sessionId: string | null
+}
+
+export interface MockCertificate extends Tenanted {
+  personnelId: string
+  type: CertificateType
+  number: string
+  issuedAt: string
+  expiresAt: string | null
+  uploadId: string | null
+  createdAt: string
+}
+
+export type HealthResult = "fit" | "conditional" | "unfit"
+
+/** Sağlık gözetimi (özel nitelikli veri). Tanı tutulmaz. */
+export interface MockHealthRecord extends Tenanted {
+  personnelId: string
+  examinedAt: string
+  nextExamAt: string
+  result: HealthResult
+  vaccinations: { type: string; date: string; nextDoseAt: string | null }[]
+  updatedAt: string
+  updatedBy: string
+}
+
+export interface MockHealthAccessLog extends Tenanted {
+  occurredAt: string
+  actorName: string
+  personnelId: string
+  action: "reveal" | "update"
+  reason: string
+}
+
+export interface MockPersonnelDocumentVersion {
+  uploadId: string
+  name: string
+  issuedAt: string | null
+  uploadedAt: string
+  uploadedBy: string
+}
+
+export interface MockPersonnelDocument extends Tenanted {
+  personnelId: string
+  typeId: string
+  /** En yenisi sonda */
+  versions: MockPersonnelDocumentVersion[]
 }

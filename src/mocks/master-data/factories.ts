@@ -428,6 +428,12 @@ export function buildTenantMasterData(
           slug === "guvenlik"
             ? ["security_id"]
             : (CERTS_BY_SECTOR[customer.sector] ?? []),
+        hazardClass:
+          customer.sector === "hospital"
+            ? ("very_dangerous" as const)
+            : customer.sector === "factory"
+              ? ("dangerous" as const)
+              : null,
         status: faker.helpers.weightedArrayElement([
           { weight: 19, value: "active" as const },
           { weight: 1, value: "passive" as const },

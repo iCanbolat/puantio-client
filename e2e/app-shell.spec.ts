@@ -49,7 +49,8 @@ test.describe("Uygulama kabuğu", () => {
   test("E2E-0.4 tema tercihi kalıcıdır", async ({ page, gotoApp }) => {
     await gotoApp("/")
     await page.getByRole("button", { name: "Tema seç" }).click()
-    await page.getByRole("menuitemradio", { name: "Koyu" }).click()
+    // Gürültü verisinin alarm bildirimi menünün üstüne düşebilir: klavyeyle seç
+    await page.getByRole("menuitemradio", { name: "Koyu" }).press("Enter")
     await expect(page.locator("html")).toHaveClass(/dark/)
     await page.reload()
     await expect(page.locator("html")).toHaveClass(/dark/)

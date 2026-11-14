@@ -15,6 +15,7 @@ import { db } from "../db"
 import type { MockArea, MockLocation, MockTag } from "../db/types"
 import { apiPath, created, ok, problem } from "../http"
 import type { MockTenant } from "../tenancy/tenants"
+import { signedDocUrl } from "../ohs/store"
 import { catalogFor, qualityRules, receiveReport, signedFileUrl } from "./store"
 
 interface ResolvedTarget {
@@ -205,29 +206,45 @@ export const feedbackHandlers = [
     })
     return created({ reference: order.number, merged })
   }),
-  /** Panel ve portal dosya yükleme (iş emri tamamlama fotoğrafı) */
+  /**
+   * Panel ve portal dosya yükleme. Amaç (`purpose`) yetkiyi ve dosya kuralını belirler:
+   * iş emri fotoğrafı (görsel, 5 MB), özlük/sertifika belgesi (PDF veya görsel, 10 MB).
+   */
   http.post(
     apiPath("/uploads"),
     withAuth(null, async ({ request, auth }) => {
-      if (
-        !auth.permissions.has("work_order:write") &&
-        !auth.permissions.has("work_order:request")
-      )
-        return problem(403, "FORBIDDEN", "Bu işlem için yetkiniz yok.")
       const form = await request.formData().catch(() => null)
+      const purposeValue = form?.get("purpose")
+      const purpose =
+        purposeValue === "personnel_doc" || purposeValue === "certificate_doc"
+          ? purposeValue
+          : "work_order_photo"
+      const allowed =
+        purpose === "personnel_doc"
+          ? auth.permissions.has("personnel_file:write")
+          : purpose === "certificate_doc"
+            ? auth.permissions.has("ohs:write")
+            : auth.permissions.has("work_order:write") ||
+              auth.permissions.has("work_order:request")
+      if (!allowed)
+        return problem(403, "FORBIDDEN", "Bu işlem için yetkiniz yok.")
       const file = form?.get("file")
       if (!(file instanceof File))
         return problem(422, "VALIDATION_FAILED", "Dosya seçin.", {
           file: ["Dosya seçin"],
         })
-      if (
-        !file.type.startsWith("image/") ||
-        file.size > FEEDBACK_PHOTO_MAX_BYTES
-      )
+      const isDocument = purpose !== "work_order_photo"
+      const typeOk = isDocument
+        ? file.type === "application/pdf" || file.type.startsWith("image/")
+        : file.type.startsWith("image/")
+      const maxBytes = isDocument ? 10 * 1024 * 1024 : FEEDBACK_PHOTO_MAX_BYTES
+      if (!typeOk || file.size > maxBytes)
         return problem(
           422,
           "VALIDATION_FAILED",
-          "En fazla 5 MB bir görsel yükleyin.",
+          isDocument
+            ? "En fazla 10 MB bir PDF veya görsel yükleyin."
+            : "En fazla 5 MB bir görsel yükleyin.",
           {
             file: ["Geçersiz dosya"],
           }
@@ -239,10 +256,13 @@ export const feedbackHandlers = [
         contentType: file.type,
         size: file.size,
         createdAt: mockClock.now().toISOString(),
+        purpose,
       })
       return created({
         id: upload.id,
-        url: signedFileUrl("quality-photos", upload.id),
+        url: isDocument
+          ? signedDocUrl(upload.id)
+          : signedFileUrl("quality-photos", upload.id),
       })
     })
   ),

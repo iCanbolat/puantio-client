@@ -70,10 +70,19 @@ export const routePatterns = {
   portalReports: "/portal/raporlar",
   portalReportSettings: "/portal/rapor-gonderimi",
   printPortalReport: "/baski/portal-rapor/:month",
+  ohs: "/isg",
+  ohsTrainings: "/isg/egitimler",
+  ohsCertificates: "/isg/sertifikalar",
+  ohsHealth: "/isg/saglik",
+  ohsHealthAccess: "/isg/saglik/erisim-kayitlari",
+  ohsAuditPack: "/isg/denetim-paketi",
+  personnelFiles: "/ozluk",
+  settingsOhs: "/ayarlar/isg",
+  portalAuditPack: "/portal/denetim-paketi",
+  printAuditPack: "/baski/denetim-paketi/:locationId",
   upcoming: {
     inventory: "/stok",
     shipments: "/sevkiyat",
-    ohs: "/isg",
     maintenance: "/bakim",
     security: "/guvenlik",
   },
@@ -117,6 +126,29 @@ export const paths = {
     request: () => routePatterns.portalRequest,
     reports: () => routePatterns.portalReports,
     reportSettings: () => routePatterns.portalReportSettings,
+    auditPack: (locationId?: string) =>
+      withQuery(routePatterns.portalAuditPack, { lokasyon: locationId }),
+  },
+  ohs: {
+    overview: () => routePatterns.ohs,
+    trainings: (query: { tab?: "durum" | "oturumlar"; state?: string } = {}) =>
+      withQuery(routePatterns.ohsTrainings, {
+        sekme: query.tab,
+        state: query.state,
+      }),
+    certificates: (query: { bucket?: string; personnelId?: string } = {}) =>
+      withQuery(routePatterns.ohsCertificates, {
+        bucket: query.bucket,
+        personnelId: query.personnelId,
+      }),
+    health: (query: { due?: string } = {}) =>
+      withQuery(routePatterns.ohsHealth, { due: query.due }),
+    healthAccess: () => routePatterns.ohsHealthAccess,
+    auditPack: (locationId?: string) =>
+      withQuery(routePatterns.ohsAuditPack, { lokasyon: locationId }),
+    personnelFiles: (query: { status?: "eksik" | "tamam" } = {}) =>
+      withQuery(routePatterns.personnelFiles, { durum: query.status }),
+    settings: () => routePatterns.settingsOhs,
   },
   quality: {
     audits: (query: { locationId?: string; templateId?: string } = {}) =>
@@ -217,6 +249,10 @@ export const paths = {
       }),
     progressPayment: (id: string) => `/baski/hakedis/${enc(id)}`,
     portalReport: (month: string) => `/baski/portal-rapor/${enc(month)}`,
+    auditPack: (locationId: string, portal = false) =>
+      withQuery(`/baski/denetim-paketi/${enc(locationId)}`, {
+        kaynak: portal ? "portal" : undefined,
+      }),
   },
   customers: {
     list: () => routePatterns.customerList,
